@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Plus, Minus, IndianRupee, Tag, FileText, Calendar } from 'lucide-react';
+import { X, Plus, Minus, IndianRupee, Tag, FileText, Calendar, AlertTriangle, Clock } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { useFinancialData } from '../contexts/FinancialDataContext';
+import { SpendingBlockedModal } from './SpendingBlockedModal';
 import { toast } from 'sonner';
+import { formatIndianCurrency } from '../utils/indianCurrency';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -36,14 +38,35 @@ const categories = {
 };
 
 export function AddTransactionModal({ isOpen, onClose, defaultType = 'expense' }: AddTransactionModalProps) {
-  const { addNewTransaction } = useFinancialData();
+  const { addNewTransaction, summary, cooldownPurchases, addCooldownPurchase } = useFinancialData();
   const [type, setType] = useState<'income' | 'expense'>(defaultType);
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Kavach spending blocked state
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
+  const [blockedReason, setBlockedReason] = useState('');
+  
+  // Large purchase warning
+  const [showLargePurchaseWarning, setShowLargePurchaseWarning] = useState(false);
+  const LARGE_PURCHASE_THRESHOLD = 5000; // ₹5000 threshold for warning
+  
+  // Low balance warning
+  const lowBalanceThreshold = 2000;
+  const isLowBalance = summary.safeToSpend < lowBalanceThreshold;
+  const wouldDepleteFunds = type === 'expense' && parseFloat(amount || '0') > summary.safeToSpend * 0.5;
+  
+  // Check if this purchase is on cooldown (user requested cooldown in last 24 hours)
+  const isOnCooldown = (purchaseCategory: string, purchaseAmount: number) => {
+    return cooldownPurchases.some(p => 
+      p.category === purchaseCategory && 
+      Math.abs(p.amount - purchaseAmount) < 100 // Similar amount check
+    );
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, forceProceed = false) => {
     e.preventDefault();
     
     if (!amount || parseFloat(amount) <= 0) {
@@ -54,6 +77,23 @@ export function AddTransactionModal({ isOpen, onClose, defaultType = 'expense' }
     if (!category) {
       toast.error('Please select a category');
       return;
+    }
+    
+    const purchaseAmount = parseFloat(amount);
+    
+    // Check if expense type
+    if (type === 'expense') {
+      // Check if this purchase is still on cooldown
+      if (isOnCooldown(category, purchaseAmount)) {
+        toast.error('This purchase is still on 24-hour cooldown. Please wait before trying again.');
+        return;
+      }
+      
+      // Check for large purchase warning (only show if not forced and above threshold)
+      if (!forceProceed && purchaseAmount >= LARGE_PURCHASE_THRESHOLD) {
+        setShowLargePurchaseWarning(true);
+        return;
+      }
     }
     
     setIsSubmitting(true);
@@ -75,6 +115,10 @@ export function AddTransactionModal({ isOpen, onClose, defaultType = 'expense' }
         setCategory('');
         setDescription('');
         onClose();
+      } else if (result.error?.includes('BLOCKED') || result.error?.includes('blocked') || result.error?.includes('exceeds')) {
+        // Show Kavach red screen takeover
+        setBlockedReason(result.error);
+        setShowBlockedModal(true);
       } else {
         toast.error(result.error || 'Failed to add transaction');
       }
@@ -83,6 +127,23 @@ export function AddTransactionModal({ isOpen, onClose, defaultType = 'expense' }
     } finally {
       setIsSubmitting(false);
     }
+  };
+  
+  const handleCoolDown = () => {
+    // Store this purchase in cooldown
+    addCooldownPurchase(parseFloat(amount), category);
+    setShowBlockedModal(false);
+    setShowLargePurchaseWarning(false);
+    toast.info('24-hour cool-down activated. Take time to reflect on this purchase.');
+    onClose();
+  };
+  
+  const handleOverride = async () => {
+    // User chose to override - process transaction anyway
+    setShowBlockedModal(false);
+    toast.warning('Override accepted. Transaction will be processed.');
+    // In a full implementation, this would call a different endpoint that bypasses Kavach
+    onClose();
   };
 
   const currentCategories = type === 'income' ? categories.income : categories.expense;
@@ -197,6 +258,34 @@ export function AddTransactionModal({ isOpen, onClose, defaultType = 'expense' }
                       required
                     />
                   </div>
+                  
+                  {/* Low Balance Warning */}
+                  {type === 'expense' && isLowBalance && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 mt-2"
+                    >
+                      <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                      <p className="text-xs text-amber-200">
+                        Low balance warning: Only {formatIndianCurrency(summary.safeToSpend)} available
+                      </p>
+                    </motion.div>
+                  )}
+                  
+                  {/* Exceeds Balance Warning */}
+                  {type === 'expense' && parseFloat(amount || '0') > summary.safeToSpend && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 mt-2"
+                    >
+                      <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                      <p className="text-xs text-red-200">
+                        Amount exceeds your Safe to Spend balance!
+                      </p>
+                    </motion.div>
+                  )}
                 </div>
                 
                 {/* Category */}
@@ -270,6 +359,85 @@ export function AddTransactionModal({ isOpen, onClose, defaultType = 'expense' }
           </motion.div>
         </>
       )}
+      
+      {/* Large Purchase Warning Modal */}
+      {showLargePurchaseWarning && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]"
+            onClick={() => setShowLargePurchaseWarning(false)}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] w-full max-w-md p-4"
+          >
+            <div className="bg-gradient-to-br from-amber-900/90 to-orange-900/90 rounded-2xl border border-amber-500/30 p-6 shadow-2xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Large Purchase Alert</h3>
+                  <p className="text-amber-200/80 text-sm">Lakshmi suggests taking a moment</p>
+                </div>
+              </div>
+              
+              <div className="bg-black/20 rounded-xl p-4 mb-4">
+                <p className="text-amber-100 mb-2">
+                  You're about to spend <span className="font-bold text-amber-400">{formatIndianCurrency(parseFloat(amount))}</span> on {category}.
+                </p>
+                <p className="text-amber-200/70 text-sm">
+                  This is {((parseFloat(amount) / summary.safeToSpend) * 100).toFixed(0)}% of your Safe to Spend balance.
+                </p>
+              </div>
+              
+              {wouldDepleteFunds && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/20 border border-red-500/30 mb-4">
+                  <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                  <p className="text-xs text-red-200">
+                    This would use over half of your available balance!
+                  </p>
+                </div>
+              )}
+              
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleCoolDown}
+                  className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  24hr Cooldown
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    setShowLargePurchaseWarning(false);
+                    handleSubmit(e, true);
+                  }}
+                  variant="outline"
+                  className="flex-1 border-white/20 text-white hover:bg-white/10"
+                >
+                  Proceed Anyway
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+      
+      {/* Kavach Spending Blocked Modal */}
+      <SpendingBlockedModal
+        isOpen={showBlockedModal}
+        amount={parseFloat(amount) || 0}
+        category={category}
+        reason={blockedReason}
+        onCoolDown={handleCoolDown}
+        onOverride={handleOverride}
+      />
     </AnimatePresence>
   );
 }

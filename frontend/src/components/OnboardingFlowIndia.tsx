@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, ArrowLeft, Target, TrendingUp, ShieldCheck, Building2, Users, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Target, TrendingUp, ShieldCheck, Building2, Users, Sparkles, CheckCircle2, Loader2, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { RupeeReadyLogo } from './RupeeReadyLogo';
@@ -8,6 +8,16 @@ import { Label } from './ui/label';
 import { useAuth } from '../contexts/AuthContext';
 import { useFinancialData } from '../contexts/FinancialDataContext';
 import { toast } from 'sonner';
+
+// Mock bank data for demo
+const MOCK_BANKS = [
+  { id: 'hdfc', name: 'HDFC Bank', logo: '🏦', accountEnding: '4521', balance: 45230 },
+  { id: 'icici', name: 'ICICI Bank', logo: '🏛️', accountEnding: '8934', balance: 12500 },
+  { id: 'sbi', name: 'State Bank of India', logo: '🇮🇳', accountEnding: '2156', balance: 8750 },
+  { id: 'axis', name: 'Axis Bank', logo: '💳', accountEnding: '7623', balance: 23100 },
+  { id: 'kotak', name: 'Kotak Mahindra', logo: '🔴', accountEnding: '9087', balance: 67800 },
+  { id: 'paytm', name: 'Paytm Payments Bank', logo: '📱', accountEnding: '3344', balance: 5200 },
+];
 
 interface OnboardingFlowIndiaProps {
   onComplete: () => void;
@@ -22,6 +32,29 @@ export function OnboardingFlowIndia({ onComplete }: OnboardingFlowIndiaProps) {
   const [firstGoal, setFirstGoal] = useState('');
   const [goalAmount, setGoalAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Bank connection states
+  const [showBankSelector, setShowBankSelector] = useState(false);
+  const [connectingBank, setConnectingBank] = useState<string | null>(null);
+  const [connectedBanks, setConnectedBanks] = useState<typeof MOCK_BANKS>([]);
+
+  // Handle simulated bank connection
+  const handleConnectBank = async (bank: typeof MOCK_BANKS[0]) => {
+    setConnectingBank(bank.id);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
+    
+    setConnectedBanks(prev => [...prev, bank]);
+    setConnectingBank(null);
+    toast.success(`${bank.name} connected successfully! 🎉`);
+  };
+
+  const handleDisconnectBank = (bankId: string) => {
+    setConnectedBanks(prev => prev.filter(b => b.id !== bankId));
+  };
+
+  const totalBalance = connectedBanks.reduce((sum, bank) => sum + bank.balance, 0);
 
   const steps = [
     {
@@ -305,18 +338,141 @@ export function OnboardingFlowIndia({ onComplete }: OnboardingFlowIndiaProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                 >
+                  {/* Connected Banks Display */}
+                  {connectedBanks.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm text-gray-400">Connected Accounts</h3>
+                        <span className="text-xs text-teal-400">
+                          Total: ₹{totalBalance.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                      {connectedBanks.map((bank) => (
+                        <motion.div
+                          key={bank.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="glass-premium rounded-xl p-4 border border-teal-500/30 flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{bank.logo}</span>
+                            <div>
+                              <p className="text-white text-sm">{bank.name}</p>
+                              <p className="text-gray-500 text-xs">••••{bank.accountEnding}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <p className="text-teal-400 text-sm font-medium">₹{bank.balance.toLocaleString('en-IN')}</p>
+                              <div className="flex items-center gap-1 text-green-400 text-xs">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Connected
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleDisconnectBank(bank.id)}
+                              className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                              <X className="w-4 h-4 text-gray-500 hover:text-red-400" />
+                            </button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+
+                  {/* Bank Selector Modal */}
+                  <AnimatePresence>
+                    {showBankSelector && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setShowBankSelector(false)}
+                      >
+                        <motion.div
+                          initial={{ scale: 0.9, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0.9, opacity: 0 }}
+                          className="bg-[#0a0a0a] rounded-2xl border border-white/10 p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl text-white">Select Your Bank</h3>
+                            <button
+                              onClick={() => setShowBankSelector(false)}
+                              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                              <X className="w-5 h-5 text-gray-400" />
+                            </button>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            {MOCK_BANKS.filter(bank => !connectedBanks.find(b => b.id === bank.id)).map((bank) => (
+                              <motion.button
+                                key={bank.id}
+                                onClick={() => handleConnectBank(bank)}
+                                disabled={connectingBank !== null}
+                                className="w-full glass-premium rounded-xl p-4 border border-white/10 hover:border-teal-500/50 transition-all flex items-center justify-between group disabled:opacity-50"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-2xl">{bank.logo}</span>
+                                  <div className="text-left">
+                                    <p className="text-white group-hover:text-teal-300 transition-colors">{bank.name}</p>
+                                    <p className="text-gray-500 text-xs">Account ••••{bank.accountEnding}</p>
+                                  </div>
+                                </div>
+                                {connectingBank === bank.id ? (
+                                  <Loader2 className="w-5 h-5 text-teal-400 animate-spin" />
+                                ) : (
+                                  <ArrowRight className="w-5 h-5 text-gray-500 group-hover:text-teal-400 transition-colors" />
+                                )}
+                              </motion.button>
+                            ))}
+                            
+                            {MOCK_BANKS.filter(bank => !connectedBanks.find(b => b.id === bank.id)).length === 0 && (
+                              <p className="text-center text-gray-500 py-4">All available banks connected!</p>
+                            )}
+                          </div>
+                          
+                          <p className="text-xs text-gray-500 mt-4 text-center">
+                            🔒 Demo mode: No real bank data is accessed
+                          </p>
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Main Connect Card */}
                   <div className="glass-premium rounded-2xl p-6 border border-teal-500/20">
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-teal-500/30">
                         <ShieldCheck className="w-6 h-6 text-white" />
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <h3 className="text-lg mb-2 text-white">Secure Setu API Integration</h3>
                         <p className="text-sm text-gray-400 mb-4">
                           Your banking data is encrypted and never stored. We use Setu API, India's leading financial data platform.
                         </p>
-                        <Button className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-black shadow-lg shadow-teal-500/30 magnetic-btn">
-                          Connect Your Bank Securely
+                        <Button 
+                          onClick={() => setShowBankSelector(true)}
+                          className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-black shadow-lg shadow-teal-500/30 magnetic-btn"
+                        >
+                          {connectedBanks.length > 0 ? (
+                            <>
+                              <Building2 className="w-4 h-4 mr-2" />
+                              Add Another Bank
+                            </>
+                          ) : (
+                            'Connect Your Bank Securely'
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -336,6 +492,18 @@ export function OnboardingFlowIndia({ onComplete }: OnboardingFlowIndiaProps) {
                       </motion.div>
                     ))}
                   </div>
+
+                  {/* Skip hint if no banks connected */}
+                  {connectedBanks.length === 0 && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1 }}
+                      className="text-xs text-gray-500 text-center"
+                    >
+                      You can skip this step and connect your bank later from Settings
+                    </motion.p>
+                  )}
                 </motion.div>
               )}
 

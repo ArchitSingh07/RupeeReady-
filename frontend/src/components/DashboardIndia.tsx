@@ -18,18 +18,27 @@ import { GoalsSection } from './GoalsSection';
 import { InsightsAlerts } from './InsightsAlerts';
 import { IncomeSpendingChart } from './IncomeSpendingChart';
 import { ProfitabilityWidget } from './ProfitabilityWidget';
-import { Plus, TrendingUp, TrendingDown } from 'lucide-react';
+import { NotificationSlideIn, useNotifications } from './NotificationSlideIn';
+import { SpendingBlockedModal } from './SpendingBlockedModal';
+import { LakshmiNudgeCard, useLakshmiNudge } from './LakshmiNudgeCard';
+import { ZeroStateDashboard } from './ZeroStateDashboard';
+import { Plus, TrendingUp, TrendingDown, Zap, FileText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useFinancialData } from '../contexts/FinancialDataContext';
+import { useRupeeSquad } from '../hooks/useRupeeSquad';
 
 interface DashboardIndiaProps {
   onLogout: () => void;
   onProfile?: () => void;
+  onInvoices?: () => void;
 }
 
-export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
+export function DashboardIndia({ onLogout, onProfile, onInvoices }: DashboardIndiaProps) {
   const { userProfile } = useAuth();
-  const { transactions, goals, alerts, summary, loading } = useFinancialData();
+  const { transactions, goals, alerts, summary, loading, taxRate, updateTaxRate, moveToVault } = useFinancialData();
+  const { currentNotification, addNotification, dismissCurrent } = useNotifications();
+  const lakshmiNudge = useLakshmiNudge(goals);
+  const { simulateIncome } = useRupeeSquad();
   
   const [trioMood, setTrioMood] = useState<'happy' | 'thinking' | 'concerned' | 'celebrating' | 'curious' | 'alert'>('happy');
   const [trioMessage, setTrioMessage] = useState<string>('');
@@ -46,6 +55,11 @@ export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
   const [addTransactionType, setAddTransactionType] = useState<'income' | 'expense'>('expense');
+  
+  // New component states
+  const [spendingBlocked, setSpendingBlocked] = useState(false);
+  const [blockedTransaction, setBlockedTransaction] = useState<any>(null);
+  const [showLakshmiNudge, setShowLakshmiNudge] = useState(false);
   
   // Agentic animation states
   const [newAlertAnimating, setNewAlertAnimating] = useState<string | null>(null);
@@ -110,15 +124,52 @@ export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
     { month: 'Nov', income: summary.totalIncome || 55000, spending: summary.totalExpenses || 48000 },
   ];
 
-  // Safe to Spend calculation - use real data from context
-  const safeToSpend = summary.safeToSpend || 45280.50;
-  const totalBalance = summary.totalBalance || 75000;
-  const taxVault = 22500;
-  const upcomingBills = 7219.50;
-  const financialHealth: 'stable' | 'good' | 'caution' = 'stable';
+  // All financial data now comes from context - no hardcoded values
+  const safeToSpend = summary.safeToSpend;
+  const totalBalance = summary.totalBalance;
+  const taxVault = summary.taxVault;
+  const upcomingBills = summary.upcomingBills;
+  const financialHealth = summary.financialHealth;
+  
+  // Check for zero state (new user with no data)
+  const isZeroState = transactions.length === 0 && summary.totalIncome === 0;
 
-  // Demonstrate tax vault automation on mount
+  // Handle simulate income with notification
+  const handleSimulateIncome = (amount: number) => {
+    simulateIncome(amount);
+    addNotification({
+      type: 'income',
+      title: '⚡ Income Detected!',
+      message: `Chanakya detected ${formatIndianCurrency(amount)} from Client X. Automatically splitting for taxes...`,
+      amount: amount,
+      character: 'chanakya',
+      actionLabel: 'View Breakdown',
+      onAction: () => setShowInsights(true),
+    });
+    
+    // Show tax flow animation after a short delay
+    setTimeout(() => {
+      setTaxFlowAnimating(true);
+      setTrioMood('thinking');
+      setActiveCharacter('chanakya');
+      const taxAmount = Math.round(amount * 0.2);
+      const safeAmount = amount - taxAmount;
+      setTrioMessage(`I've secured ${formatIndianCurrency(taxAmount)} for taxes. You are free to spend the remaining ${formatIndianCurrency(safeAmount)} guilt-free! 🎉`);
+      
+      setTimeout(() => {
+        setTaxFlowAnimating(false);
+        setTrioMood('happy');
+        setActiveCharacter(null);
+        setTrioMessage('');
+      }, 5000);
+    }, 1500);
+  };
+
+  // Demonstrate tax vault automation on mount (only if not zero state)
   useEffect(() => {
+    // Skip animation in zero state
+    if (isZeroState) return;
+    
     const timer = setTimeout(() => {
       setTaxFlowAnimating(true);
       setTrioMood('thinking');
@@ -134,7 +185,7 @@ export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [isZeroState]);
 
   const handleTransactionClick = (transaction: any) => {
     if (transaction.isImpulse) {
@@ -191,13 +242,49 @@ export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
     setActiveCharacter('lakshmi');
   };
 
+  // Render Zero State if no data
+  if (isZeroState) {
+    return (
+      <div className="min-h-screen bg-black relative overflow-hidden">
+        <div className="fixed inset-0 bg-black pointer-events-none" />
+        
+        <main className="relative z-10 pt-20 sm:pt-24">
+          <ZeroStateDashboard
+            onSimulateIncome={handleSimulateIncome}
+            onAddIncome={() => {
+              setAddTransactionType('income');
+              setShowAddTransaction(true);
+            }}
+            onAddExpense={() => {
+              setAddTransactionType('expense');
+              setShowAddTransaction(true);
+            }}
+          />
+        </main>
+
+        {/* Add Transaction Modal */}
+        <AddTransactionModal
+          isOpen={showAddTransaction}
+          onClose={() => setShowAddTransaction(false)}
+          defaultType={addTransactionType}
+        />
+
+        {/* Notification Slide-in */}
+        <NotificationSlideIn 
+          notification={currentNotification} 
+          onDismiss={dismissCurrent} 
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Solid Black Background */}
       <div className="fixed inset-0 bg-black pointer-events-none" />
 
       {/* Main Content */}
-      <main className="container mx-auto px-3 sm:px-6 py-6 sm:py-8 pt-20 sm:pt-24 relative z-10">
+      <main className="container mx-auto px-3 sm:px-6 py-6 sm:py-8 pt-24 sm:pt-28 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-8 space-y-4 sm:space-y-6 order-2 lg:order-1">
@@ -213,6 +300,7 @@ export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
                 taxVault={taxVault}
                 upcomingBills={upcomingBills}
                 financialHealth={financialHealth}
+                isZeroState={isZeroState}
               />
             </motion.div>
 
@@ -221,15 +309,8 @@ export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="glass-effect rounded-3xl border border-white/10 p-6 relative premium-card-hover"
+              className="glass-effect rounded-3xl border border-white/10 p-6 premium-card-hover"
             >
-              {/* Chanakya icon for Cash Flow Analysis */}
-              <div className="absolute top-6 right-6 flex items-center gap-2 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-full px-3 py-1.5 border border-orange-500/30">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
-                  <span className="text-white text-xs">C</span>
-                </div>
-                <span className="text-xs text-orange-400">Chanakya's Analysis</span>
-              </div>
               <IncomeSpendingChart data={mockChartData} />
             </motion.div>
 
@@ -281,9 +362,12 @@ export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
                 <span className="text-white text-xs">C</span>
               </div>
               <TaxVault
-                currentAmount={22500}
-                estimatedAnnualTax={120000}
-                taxRate={30}
+                currentAmount={taxVault}
+                estimatedAnnualTax={taxVault * 12}
+                taxRate={taxRate}
+                safeBalance={safeToSpend}
+                onMoveToVault={moveToVault}
+                onUpdateTaxRate={updateTaxRate}
               />
             </motion.div>
 
@@ -401,6 +485,28 @@ export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
 
       {/* Floating Action Button - Add Transaction */}
       <div className="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 z-40 flex flex-col gap-2 sm:gap-3">
+        {/* Developer: Simulate Salary Button */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            simulateIncome(50000);
+            addNotification({
+              type: 'income',
+              title: 'Income Detected!',
+              message: 'Chanakya detected ₹50,000 from salary. Automatically splitting for tax vault...',
+              amount: 50000,
+              character: 'chanakya',
+              actionLabel: 'View Breakdown',
+              onAction: () => setShowInsights(true),
+            });
+          }}
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/30 flex items-center justify-center text-white hover:shadow-xl transition-shadow"
+          title="Simulate Salary (Dev)"
+        >
+          <Zap className="w-5 h-5 sm:w-6 sm:h-6" />
+        </motion.button>
+        
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
@@ -440,6 +546,9 @@ export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
           goal={selectedGoal}
           onClose={() => {
             setSelectedGoal(null);
+          }}
+          onGoalCompleted={() => {
+            setSelectedGoal(null);
             handleGoalComplete();
           }}
         />
@@ -474,6 +583,47 @@ export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
       />
+      
+      {/* New Components */}
+      <NotificationSlideIn 
+        notification={currentNotification} 
+        onDismiss={dismissCurrent} 
+      />
+      
+      <SpendingBlockedModal
+        isOpen={spendingBlocked}
+        amount={blockedTransaction?.amount || 0}
+        category={blockedTransaction?.category || ''}
+        reason={blockedTransaction?.reason || ''}
+        onCoolDown={() => {
+          setSpendingBlocked(false);
+          addNotification({
+            type: 'expense-blocked',
+            title: 'Cool-Down Activated',
+            message: '24-hour reflection period started. Your financial wellness is protected.',
+            character: 'kavach',
+          });
+        }}
+        onOverride={() => {
+          setSpendingBlocked(false);
+          // Process the transaction anyway
+        }}
+      />
+      
+      {lakshmiNudge && (
+        <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-3rem)]">
+          <LakshmiNudgeCard
+            goal={lakshmiNudge.goal}
+            percentComplete={lakshmiNudge.percentComplete}
+            onSwapBudget={() => {
+              setShowInsights(true);
+              setShowLakshmiNudge(false);
+            }}
+            onDismiss={() => setShowLakshmiNudge(false)}
+            visible={showLakshmiNudge || lakshmiNudge.percentComplete >= 85}
+          />
+        </div>
+      )}
 
       {/* Settings Modal */}
       <SettingsModal

@@ -9,7 +9,8 @@ interface SafeToSpendWidgetProps {
   totalBalance: number;
   taxVault: number;
   upcomingBills: number;
-  financialHealth?: 'stable' | 'good' | 'caution';
+  financialHealth?: 'stable' | 'good' | 'caution' | 'critical';
+  isZeroState?: boolean;
 }
 
 export function SafeToSpendWidget({ 
@@ -17,12 +18,22 @@ export function SafeToSpendWidget({
   totalBalance, 
   taxVault, 
   upcomingBills,
-  financialHealth = 'stable' 
+  financialHealth = 'stable',
+  isZeroState = false
 }: SafeToSpendWidgetProps) {
   const [showBreakdown, setShowBreakdown] = useState(false);
 
   // Determine colors based on financial health - DARK THEME
   const getHealthStyles = () => {
+    if (isZeroState) {
+      return {
+        gradient: 'from-slate-500 via-gray-500 to-slate-500',
+        glowColor: 'rgba(100, 116, 139, 0.3)',
+        textColor: 'text-slate-400',
+        bgOverlay: 'from-slate-500/20 to-gray-500/20',
+      };
+    }
+    
     switch (financialHealth) {
       case 'good':
         return {
@@ -37,6 +48,13 @@ export function SafeToSpendWidget({
           glowColor: 'rgba(249, 115, 22, 0.4)',
           textColor: 'text-orange-400',
           bgOverlay: 'from-orange-500/20 to-amber-500/20',
+        };
+      case 'critical':
+        return {
+          gradient: 'from-red-500 via-rose-500 to-red-500',
+          glowColor: 'rgba(239, 68, 68, 0.4)',
+          textColor: 'text-red-400',
+          bgOverlay: 'from-red-500/20 to-rose-500/20',
         };
       default:
         return {
@@ -123,19 +141,34 @@ export function SafeToSpendWidget({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="flex items-baseline gap-1 sm:gap-2">
-              <IndianRupee className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 ${styles.textColor}`} />
-              <div className="gradient-text text-3xl sm:text-4xl md:text-5xl lg:text-6xl">{formatIndianCurrency(safeAmount)}</div>
-            </div>
-            <motion.div
-              className={`mt-2 sm:mt-3 inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r ${styles.bgOverlay} border border-white/10`}
-              whileHover={{ scale: 1.05 }}
-            >
-              <TrendingUp className={`w-3 h-3 sm:w-4 sm:h-4 ${styles.textColor}`} />
-              <span className="text-xs sm:text-sm text-gray-300">
-                {financialHealth === 'good' ? 'Healthy Balance' : financialHealth === 'caution' ? 'Monitor Spending' : 'Stable Position'}
-              </span>
-            </motion.div>
+            {isZeroState ? (
+              <div className="text-center py-8">
+                <div className="flex items-baseline justify-center gap-2 mb-4">
+                  <IndianRupee className="w-8 h-8 text-slate-500" />
+                  <div className="text-5xl text-slate-500 font-bold">0</div>
+                </div>
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/30">
+                  <p className="text-slate-400 text-sm mb-2">🛡️ RupeeSquad Active: Monitoring for Income...</p>
+                  <p className="text-slate-500 text-xs">Waiting for your first transaction to get started</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-baseline gap-1 sm:gap-2">
+                  <IndianRupee className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 ${styles.textColor}`} />
+                  <div className="gradient-text text-3xl sm:text-4xl md:text-5xl lg:text-6xl">{formatIndianCurrency(safeAmount)}</div>
+                </div>
+                <motion.div
+                  className={`mt-2 sm:mt-3 inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r ${styles.bgOverlay} border border-white/10`}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <TrendingUp className={`w-3 h-3 sm:w-4 sm:h-4 ${styles.textColor}`} />
+                  <span className="text-xs sm:text-sm text-gray-300">
+                    {financialHealth === 'good' ? 'Healthy Balance' : financialHealth === 'caution' ? 'Monitor Spending' : 'Stable Position'}
+                  </span>
+                </motion.div>
+              </>
+            )}
           </motion.div>
 
           {/* Breakdown Section */}

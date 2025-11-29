@@ -275,7 +275,7 @@ export function AboutPage({ onBack, onGetStarted }: AboutPageProps) {
         <footer className="py-12 px-6 border-t border-white/5">
           <div className="max-w-6xl mx-auto text-center">
             <RupeeReadyLogo size="sm" />
-            <p className="text-gray-600 text-sm mt-4">© 2024 RupeeReady AI. Made with ❤️ for India's gig workers.</p>
+            <p className="text-gray-600 text-sm mt-4">© 2025 RupeeReady AI. Made with ❤️ for India's gig workers.</p>
           </div>
         </footer>
       </div>

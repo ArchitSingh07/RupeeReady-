@@ -9,6 +9,7 @@ import { PricingPage } from './components/PricingPage';
 import { AboutPage } from './components/AboutPage';
 import { HowItWorksPage } from './components/HowItWorksPage';
 import { UserProfilePage } from './components/UserProfilePage';
+import { InvoicesPage } from './components/InvoicesPage';
 import { RupeeCursor } from './components/RupeeCursor';
 import { RupeeSquad } from './components/RupeeSquad';
 import { PersistentHeader } from './components/PersistentHeader';
@@ -19,7 +20,7 @@ import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
 import { useAuth } from './contexts/AuthContext';
 
-type AppState = 'landing' | 'login' | 'register' | 'onboarding' | 'dashboard' | 'profile' | 'features' | 'pricing' | 'about' | 'how-it-works' | 'loading';
+type AppState = 'landing' | 'login' | 'register' | 'onboarding' | 'dashboard' | 'profile' | 'features' | 'pricing' | 'about' | 'how-it-works' | 'invoices' | 'loading';
 
 export default function App() {
   const { user, userProfile, loading, isInitialized, logout } = useAuth();
@@ -78,6 +79,7 @@ export default function App() {
   const handleGoToLanding = () => setAppState('landing');
   const handleGoToLogin = () => setAppState('login');
   const handleGoToRegister = () => setAppState('register');
+  const handleGoToInvoices = () => setAppState('invoices');
 
   // Auth handlers
   const handleRegisterComplete = () => {
@@ -147,6 +149,7 @@ export default function App() {
             toLogin: handleGoToLogin,
             toRegister: handleGetStarted,
             toLogout: handleLogout,
+            toInvoices: handleGoToInvoices,
           }}
           onNotificationsClick={() => setShowNotifications(true)}
           onSettingsClick={() => setShowSettings(true)}
@@ -215,6 +218,7 @@ export default function App() {
         <DashboardIndia 
           onLogout={handleLogout} 
           onProfile={() => setAppState('profile')}
+          onInvoices={handleGoToInvoices}
         />
       )}
 
@@ -223,6 +227,10 @@ export default function App() {
           onBack={() => setAppState('dashboard')}
           onLogout={handleLogout}
         />
+      )}
+
+      {appState === 'invoices' && (
+        <InvoicesPage onBack={() => setAppState('dashboard')} />
       )}
 
       {/* Global RupeeSquad */}

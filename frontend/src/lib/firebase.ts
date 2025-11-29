@@ -81,6 +81,14 @@ export const checkRedirectResult = async () => {
           dark_mode: true,
           onboardingCompleted: false,
         });
+      } else {
+        // For existing users, update their photo and display name from Google
+        const updates: Record<string, any> = {};
+        if (user.photoURL) updates.photoURL = user.photoURL;
+        if (user.displayName) updates.displayName = user.displayName;
+        if (Object.keys(updates).length > 0) {
+          await updateDoc(doc(db, 'users', user.uid), updates);
+        }
       }
       
       return { user, error: null, isNewUser };
@@ -225,9 +233,18 @@ export const signInWithGoogle = async () => {
         dark_mode: true,
         onboardingCompleted: false,
       });
+    } else {
+      // For existing users, update their photo and display name from Google
+      // This ensures the profile stays in sync with their Google account
+      const updates: Record<string, any> = {};
+      if (user.photoURL) updates.photoURL = user.photoURL;
+      if (user.displayName) updates.displayName = user.displayName;
+      if (Object.keys(updates).length > 0) {
+        await updateDoc(doc(db, 'users', user.uid), updates);
+      }
     }
     
-    return { user, error: null, isNewUser };
+    return { user, error: null, isNewUser }
   } catch (error: any) {
     // Handle specific Firebase auth errors with user-friendly messages
     let errorMessage = 'Google sign-in failed. Please try again.';

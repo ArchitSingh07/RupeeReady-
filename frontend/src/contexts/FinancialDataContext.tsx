@@ -5,7 +5,8 @@ import {
   getUserGoals, 
   addGoal,
   updateGoal as updateGoalInFirestore,
-  updateUserProfile 
+  updateUserProfile,
+  deleteGoal as deleteGoalFromFirestore
 } from '../lib/firebase';
 import { useAuth } from './AuthContext';
 
@@ -51,6 +52,7 @@ export interface FinancialSummary {
   totalIncome: number;
   totalExpenses: number;
   financialHealth: 'good' | 'stable' | 'caution' | 'critical';
+  taxRate: number;
 }
 
 interface FinancialDataContextType {
@@ -68,6 +70,7 @@ interface FinancialDataContextType {
   // Goal methods
   addNewGoal: (goal: Omit<Goal, 'id' | 'user_id' | 'createdAt'>, skipRefresh?: boolean) => Promise<{ success: boolean; error?: string }>;
   updateGoal: (goalId: string, updates: Partial<Goal>) => Promise<{ success: boolean; error?: string }>;
+  deleteGoal: (goalId: string) => Promise<{ success: boolean; error?: string }>;
   refreshGoals: () => Promise<void>;
   
   // Alert methods
@@ -75,6 +78,16 @@ interface FinancialDataContextType {
   
   // Balance methods
   updateBalance: (updates: { safe_balance?: number; tax_vault?: number }) => Promise<{ success: boolean; error?: string }>;
+  moveToVault: (amount: number) => Promise<{ success: boolean; error?: string }>;
+  
+  // Tax rate
+  taxRate: number;
+  updateTaxRate: (newRate: number) => Promise<{ success: boolean; error?: string }>;
+  
+  // Cooldown methods
+  cooldownPurchases: { amount: number; category: string; expiresAt: string }[];
+  addCooldownPurchase: (amount: number, category: string) => void;
+  removeCooldownPurchase: (index: number) => void;
   
   // Refresh all data
   refreshAllData: () => Promise<void>;
@@ -91,18 +104,34 @@ export function FinancialDataProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [bills, setBills] = useState<{ amount: number; dueDate: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [_error, setError] = useState<string | null>(null);
+  const [taxRate, setTaxRate] = useState(30); // Default 30% tax rate
+  const [cooldownPurchases, setCooldownPurchases] = useState<{ amount: number; category: string; expiresAt: string }[]>([]);
+
+  // Calculate upcoming bills from bills state
+  const calculateUpcomingBills = useCallback(() => {
+    const now = new Date();
+    const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    return bills
+      .filter(bill => {
+        const dueDate = new Date(bill.dueDate);
+        return dueDate >= now && dueDate <= sevenDaysLater;
+      })
+      .reduce((sum, bill) => sum + bill.amount, 0);
+  }, [bills]);
 
   // Calculate financial summary
   const summary: FinancialSummary = {
     safeToSpend: userProfile?.safe_balance || 0,
     totalBalance: (userProfile?.safe_balance || 0) + (userProfile?.tax_vault || 0),
     taxVault: userProfile?.tax_vault || 0,
-    upcomingBills: 7219.50, // This would come from a bills collection in a full implementation
+    upcomingBills: calculateUpcomingBills() || (userProfile?.upcoming_bills || 0),
     totalIncome: userProfile?.total_income || 0,
     totalExpenses: userProfile?.total_expenses || 0,
     financialHealth: calculateHealthStatus(userProfile?.safe_balance || 0, userProfile?.total_income || 0),
+    taxRate: taxRate,
   };
 
   function calculateHealthStatus(balance: number, income: number): 'good' | 'stable' | 'caution' | 'critical' {
@@ -278,8 +307,8 @@ export function FinancialDataProvider({ children }: { children: ReactNode }) {
     const updates: Record<string, number> = {};
     if (transaction.type === 'income') {
       updates.total_income = (userProfile?.total_income || 0) + transaction.amount;
-      // Add to safe balance (minus tax reserve of 30%)
-      const taxAmount = transaction.amount * 0.3;
+      // Add to safe balance (minus tax reserve based on current tax rate)
+      const taxAmount = transaction.amount * (taxRate / 100);
       updates.safe_balance = (userProfile?.safe_balance || 0) + (transaction.amount - taxAmount);
       updates.tax_vault = (userProfile?.tax_vault || 0) + taxAmount;
     } else {
@@ -342,6 +371,74 @@ export function FinancialDataProvider({ children }: { children: ReactNode }) {
     setAlerts(prev => prev.filter(a => a.id !== alertId));
   };
 
+  // Delete a goal
+  const deleteGoal = async (goalId: string) => {
+    if (!user) return { success: false, error: 'Not logged in' };
+    
+    try {
+      const { error: deleteError } = await deleteGoalFromFirestore(goalId);
+      if (deleteError) {
+        return { success: false, error: deleteError };
+      }
+      
+      // Update local state immediately
+      setGoals(prev => prev.filter(g => g.id !== goalId));
+      return { success: true };
+    } catch (err: any) {
+      console.error('Delete goal error:', err);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Move money to tax vault
+  const moveToVault = async (amount: number) => {
+    if (!user) return { success: false, error: 'Not logged in' };
+    
+    const currentSafeBalance = userProfile?.safe_balance || 0;
+    if (amount > currentSafeBalance) {
+      return { success: false, error: 'Insufficient balance' };
+    }
+    
+    const newSafeBalance = currentSafeBalance - amount;
+    const newTaxVault = (userProfile?.tax_vault || 0) + amount;
+    
+    await updateUserProfile(user.uid, {
+      safe_balance: newSafeBalance,
+      tax_vault: newTaxVault,
+    });
+    await refreshProfile();
+    return { success: true };
+  };
+
+  // Update tax rate
+  const updateTaxRate = async (newRate: number) => {
+    if (newRate < 0 || newRate > 100) {
+      return { success: false, error: 'Tax rate must be between 0 and 100' };
+    }
+    setTaxRate(newRate);
+    // Optionally persist to user profile
+    if (user) {
+      await updateUserProfile(user.uid, { taxRate: newRate });
+    }
+    return { success: true };
+  };
+
+  // Cooldown purchase management
+  const getCooldownPurchases = () => {
+    // Filter out expired cooldowns
+    const now = new Date().toISOString();
+    return cooldownPurchases.filter(p => p.expiresAt > now);
+  };
+
+  const addCooldownPurchase = (amount: number, category: string) => {
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours from now
+    setCooldownPurchases(prev => [...prev, { amount, category, expiresAt }]);
+  };
+
+  const removeCooldownPurchase = (index: number) => {
+    setCooldownPurchases(prev => prev.filter((_, i) => i !== index));
+  };
+
   // Update balance
   const updateBalance = async (updates: { safe_balance?: number; tax_vault?: number }) => {
     if (!user) return { success: false, error: 'Not logged in' };
@@ -381,10 +478,17 @@ export function FinancialDataProvider({ children }: { children: ReactNode }) {
     refreshTransactions,
     addNewGoal,
     updateGoal,
+    deleteGoal,
     refreshGoals,
     dismissAlert,
     updateBalance,
     refreshAllData,
+    taxRate,
+    updateTaxRate,
+    moveToVault,
+    cooldownPurchases: getCooldownPurchases(),
+    addCooldownPurchase,
+    removeCooldownPurchase,
   };
 
   return (

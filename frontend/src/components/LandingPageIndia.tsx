@@ -530,7 +530,7 @@ export function LandingPageIndia({ onGetStarted, onLogin, onFeatures, onPricing,
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="flex flex-col md:flex-row items-center gap-4">
               <RupeeReadyLogo size="sm" />
-              <span className="text-gray-500 text-sm">© 2024 RupeeReady AI. Made with ❤️ for India's gig workers.</span>
+              <span className="text-gray-500 text-sm">© 2025 RupeeReady AI. Made with ❤️ for India's gig workers.</span>
             </div>
             <div className="flex flex-wrap justify-center gap-8 text-sm">
               <button onClick={onAbout} className="text-gray-400 hover:text-teal-400 transition-colors relative group">

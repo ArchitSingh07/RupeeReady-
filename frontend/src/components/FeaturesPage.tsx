@@ -298,7 +298,7 @@ export function FeaturesPage({ onBack, onGetStarted }: FeaturesPageProps) {
         <footer className="py-16 px-6 border-t border-white/10">
           <div className="max-w-7xl mx-auto text-center">
             <RupeeReadyLogo size="sm" />
-            <p className="text-gray-500 text-sm mt-6">© 2024 RupeeReady AI. Made with ❤️ for India's gig workers.</p>
+            <p className="text-gray-500 text-sm mt-6">© 2025 RupeeReady AI. Made with ❤️ for India's gig workers.</p>
           </div>
         </footer>
       </div>

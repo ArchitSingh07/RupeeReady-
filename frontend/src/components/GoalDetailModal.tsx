@@ -17,10 +17,11 @@ interface GoalDetailModalProps {
     color: string;
   } | null;
   onClose: () => void;
+  onGoalCompleted?: () => void;
 }
 
-export function GoalDetailModal({ goal, onClose }: GoalDetailModalProps) {
-  const { updateGoal, refreshGoals } = useFinancialData();
+export function GoalDetailModal({ goal, onClose, onGoalCompleted }: GoalDetailModalProps) {
+  const { updateGoal, deleteGoal } = useFinancialData();
   const [showContributionInput, setShowContributionInput] = useState(false);
   const [contributionAmount, setContributionAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,13 +58,22 @@ export function GoalDetailModal({ goal, onClose }: GoalDetailModalProps) {
         const newProgress = (newAmount / goal.targetAmount) * 100;
         if (newProgress >= 100) {
           toast.success('🎉 Congratulations! You have reached your goal!');
+          setContributionAmount('');
+          setShowContributionInput(false);
+          setIsSubmitting(false);
+          // Call the goal completed callback to trigger celebration
+          if (onGoalCompleted) {
+            onGoalCompleted();
+          } else {
+            handleClose();
+          }
         } else {
           toast.success(`Added ₹${parseFloat(contributionAmount).toLocaleString('en-IN')} to ${goal.name}!`);
+          setContributionAmount('');
+          setShowContributionInput(false);
+          setIsSubmitting(false);
+          handleClose();
         }
-        setContributionAmount('');
-        setShowContributionInput(false);
-        setIsSubmitting(false);
-        handleClose();
       } else {
         toast.error(result.error || 'Failed to add contribution');
         setIsSubmitting(false);
@@ -79,13 +89,10 @@ export function GoalDetailModal({ goal, onClose }: GoalDetailModalProps) {
     setIsSubmitting(true);
     
     try {
-      // Import and use deleteGoal from firebase
-      const { deleteGoal } = await import('../lib/firebase');
       const result = await deleteGoal(goal.id);
       
-      if (!result.error) {
+      if (result.success) {
         toast.success('Goal deleted successfully');
-        await refreshGoals(); // Refresh the goals list
         handleClose();
       } else {
         toast.error(result.error || 'Failed to delete goal');

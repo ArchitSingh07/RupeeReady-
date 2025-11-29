@@ -174,7 +174,7 @@ export function RupeeSquad({ mood: externalMood, message: externalMessage, activ
   };
 
   return (
-    <div className="fixed bottom-8 right-8 z-50">
+    <div className="fixed bottom-24 right-20 z-50">
       <AnimatePresence>
         {message && (
           <motion.div
@@ -589,16 +589,16 @@ export function RupeeSquad({ mood: externalMood, message: externalMessage, activ
       <AnimatePresence>
         {isExpanded && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute top-full mt-2 right-0 bg-white rounded-xl shadow-lg p-3 border border-teal-500/20 min-w-[200px]"
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+            className="absolute bottom-0 right-full mr-4 bg-white rounded-xl shadow-lg p-3 border border-teal-500/20 min-w-[200px]"
           >
             {/* Status Update */}
             <div className="mb-3 pb-3 border-b border-gray-200">
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs text-gray-900">Status</span>
+                <span className="text-xs text-gray-900 font-medium">Status</span>
               </div>
               <p className="text-xs text-gray-700">Everything looks stable! ✅</p>
             </div>
@@ -619,6 +619,9 @@ export function RupeeSquad({ mood: externalMood, message: externalMessage, activ
                 <span className="text-gray-700">Lakshmi - Motivator</span>
               </div>
             </div>
+            
+            {/* Arrow pointing to orb */}
+            <div className="absolute top-1/2 -right-2 -translate-y-1/2 w-3 h-3 bg-white transform rotate-45 border-r border-t border-teal-500/20" />
           </motion.div>
         )}
       </AnimatePresence>

@@ -53,13 +53,14 @@ export function UserProfilePage({ onBack, onLogout }: UserProfilePageProps) {
   const [darkMode, setDarkMode] = useState(authProfile?.dark_mode ?? true);
 
   const userInfo = {
-    name: authProfile?.displayName || user?.email?.split('@')[0] || 'User',
+    name: authProfile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'User',
     email: authProfile?.email || user?.email || 'Not set',
-    avatar: (authProfile?.displayName || user?.email || 'U')[0].toUpperCase(),
+    avatar: (authProfile?.displayName || user?.displayName || user?.email || 'U')[0].toUpperCase(),
     joinDate: authProfile?.createdAt 
       ? new Date(authProfile.createdAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) 
       : 'Recent',
-    photoURL: authProfile?.photoURL || null,
+    // Use photoURL from profile OR directly from Firebase user (for Google sign-in)
+    photoURL: authProfile?.photoURL || user?.photoURL || null,
   };
 
   // Calculate stats
