@@ -3,7 +3,6 @@ import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Shield, TrendingUp, Target, AlertCircle, Coffee, Zap, ArrowRight, Check } from 'lucide-react';
 import { FinTrio } from './FinTrio';
-import { GalacticBackground } from './GalacticBackground';
 import { AICompanion } from './AICompanion';
 
 interface LandingPageProps {
@@ -78,11 +77,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
   ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <GalacticBackground />
+    <div className="min-h-screen relative overflow-hidden bg-black">
+      {/* Solid black background with subtle gradient overlay */}
+      <div className="fixed inset-0 bg-black z-0" />
+      <div className="fixed inset-0 bg-gradient-to-b from-black via-black to-gray-950 z-0" />
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-40 bg-indigo-950/50 backdrop-blur-lg border-b border-cyan-500/20">
+      <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur-lg border-b border-white/10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

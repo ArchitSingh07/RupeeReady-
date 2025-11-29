@@ -87,72 +87,9 @@ export function RegisterPageIndia({ onRegister, onLogin }: RegisterPageIndiaProp
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] noise-texture relative overflow-hidden flex items-center justify-center p-6">
-      {/* Premium Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Aurora effect orbs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.2, 0.4, 0.2],
-            x: [0, 50, 0],
-            y: [0, -30, 0],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -top-1/2 -left-1/4 w-[80%] h-[80%] aurora-bg rounded-full blur-[100px]"
-        />
-        <motion.div
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.15, 0.3, 0.15],
-            x: [0, -40, 0],
-            y: [0, 40, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -bottom-1/2 -right-1/4 w-[80%] h-[80%] bg-gradient-to-tl from-purple-500/30 via-pink-500/20 to-transparent rounded-full blur-[100px]"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.1, 0.25, 0.1],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-emerald-500/20 rounded-full blur-[80px]"
-        />
-        
-        {/* Floating particles */}
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 rounded-full bg-white/30"
-            initial={{
-              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
-              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
-            }}
-            animate={{
-              y: [null, -20, 20, -20],
-              opacity: [0.2, 0.6, 0.2],
-            }}
-            transition={{
-              duration: 4 + Math.random() * 4,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
-      </div>
+    <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center p-6">
+      {/* Solid Black Background */}
+      <div className="fixed inset-0 bg-black pointer-events-none" />
 
       {/* Main Container */}
       <motion.div

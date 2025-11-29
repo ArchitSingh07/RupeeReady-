@@ -192,46 +192,9 @@ export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] relative overflow-hidden">
-      {/* Animated Background Gradients */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.15, 0.25, 0.15],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -top-1/2 -left-1/4 w-3/4 h-3/4 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.15, 0.25, 0.15],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -bottom-1/2 -right-1/4 w-3/4 h-3/4 bg-gradient-to-tl from-purple-500/20 to-transparent rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.1, 0.2, 0.1],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 bg-gradient-to-r from-orange-500/20 to-transparent rounded-full blur-3xl"
-        />
-      </div>
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Solid Black Background */}
+      <div className="fixed inset-0 bg-black pointer-events-none" />
 
       {/* Main Content */}
       <main className="container mx-auto px-3 sm:px-6 py-6 sm:py-8 pt-20 sm:pt-24 relative z-10">

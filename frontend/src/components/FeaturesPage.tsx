@@ -109,69 +109,9 @@ export function FeaturesPage({ onBack, onGetStarted }: FeaturesPageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] noise-texture relative overflow-hidden">
-      {/* Premium Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.15, 0.3, 0.15],
-            x: [0, 30, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -top-1/2 -left-1/4 w-[80%] h-[80%] aurora-bg rounded-full blur-[100px]"
-        />
-        <motion.div
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.1, 0.25, 0.1],
-            x: [0, -30, 0],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -bottom-1/2 -right-1/4 w-[80%] h-[80%] bg-gradient-to-tl from-purple-500/30 via-pink-500/20 to-transparent rounded-full blur-[100px]"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.1, 0.2, 0.1],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute top-1/3 right-1/4 w-[40%] h-[40%] bg-gradient-to-r from-orange-500/20 to-amber-500/10 rounded-full blur-[80px]"
-        />
-        
-        {/* Floating particles */}
-        {[...Array(15)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 rounded-full bg-white/20"
-            initial={{
-              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
-              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
-            }}
-            animate={{
-              y: [null, -30, 30, -30],
-              opacity: [0.2, 0.5, 0.2],
-            }}
-            transition={{
-              duration: 5 + Math.random() * 5,
-              repeat: Infinity,
-              delay: Math.random() * 3,
-            }}
-          />
-        ))}
-      </div>
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Solid Black Background */}
+      <div className="fixed inset-0 bg-black pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10">

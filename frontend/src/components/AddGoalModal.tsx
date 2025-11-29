@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Target, IndianRupee } from 'lucide-react';
+import { X, Target, IndianRupee, Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -22,12 +22,12 @@ interface AddGoalModalProps {
 
 const goalColors = [
   { value: '#14B8A6', name: 'Teal' },
-  { value: '#F59E0B', name: 'Amber' },
+  { value: '#06B6D4', name: 'Cyan' },
   { value: '#8B5CF6', name: 'Purple' },
-  { value: '#EF4444', name: 'Red' },
   { value: '#3B82F6', name: 'Blue' },
+  { value: '#10B981', name: 'Emerald' },
+  { value: '#F59E0B', name: 'Amber' },
   { value: '#EC4899', name: 'Pink' },
-  { value: '#10B981', name: 'Green' },
   { value: '#F97316', name: 'Orange' },
 ];
 
@@ -130,7 +130,7 @@ export function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleBackdropClick}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
           />
           
           {/* Modal Container */}
@@ -141,34 +141,38 @@ export function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               onClick={handleModalClick}
-              className="relative w-full max-w-md bg-[#141414] rounded-3xl border border-white/10 p-6 overflow-hidden max-h-[90vh] overflow-y-auto pointer-events-auto shadow-2xl"
+              className="relative w-full max-w-md bg-[#0D0D0D] rounded-2xl border border-white/10 p-6 overflow-hidden max-h-[90vh] overflow-y-auto pointer-events-auto shadow-2xl shadow-black/50"
             >
-              {/* Background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-purple-500/5 pointer-events-none" />
+              {/* Subtle background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
               
               {/* Close button */}
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={isSubmitting}
-                className="absolute top-4 right-4 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors z-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute top-4 right-4 p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-all z-10 disabled:opacity-50 disabled:cursor-not-allowed group"
                 aria-label="Close modal"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-4 h-4 text-gray-500 group-hover:text-gray-300 transition-colors" />
               </button>
               
               {/* Header */}
               <div className="relative mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mb-4 shadow-lg shadow-amber-500/30">
-                  <Target className="w-7 h-7 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center mb-4 shadow-lg shadow-teal-500/20">
+                  <Target className="w-6 h-6 text-white" />
                 </div>
-                <h2 className="text-2xl font-semibold text-white">Create New Goal</h2>
-                <p className="text-gray-400 text-sm mt-1">Set a savings goal and start tracking your progress</p>
+                <h2 className="text-xl font-semibold text-white">Create New Goal</h2>
+                <p className="text-gray-500 text-sm mt-1">Set a savings goal and track your progress</p>
               </div>
               
               {/* Quick Presets */}
-              <div className="relative mb-6">
-                <Label className="text-gray-300 text-sm mb-3 block">Quick Presets</Label>
+              <div className="relative mb-5">
+                <Label className="text-gray-400 text-xs uppercase tracking-wider mb-3 block flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3" />
+                  Quick Presets
+                </Label>
                 <div className="grid grid-cols-3 gap-2">
                   {goalPresets.map((preset) => (
                     <button
@@ -176,14 +180,14 @@ export function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
                       type="button"
                       onClick={() => handlePresetSelect(preset)}
                       disabled={isSubmitting}
-                      className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all duration-200 disabled:opacity-50 ${
+                      className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all duration-200 disabled:opacity-50 ${
                         name === preset.name
-                          ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-500/50 border'
-                          : 'bg-white/5 border border-white/10 hover:border-white/20'
+                          ? 'bg-teal-500/15 border-teal-500/40 border shadow-sm shadow-teal-500/10'
+                          : 'bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10'
                       }`}
                     >
-                      <span className="text-lg">{preset.icon}</span>
-                      <span className={`text-xs text-center ${name === preset.name ? 'text-white' : 'text-gray-400'}`}>
+                      <span className="text-base">{preset.icon}</span>
+                      <span className={`text-[10px] text-center leading-tight ${name === preset.name ? 'text-teal-400' : 'text-gray-500'}`}>
                         {preset.name}
                       </span>
                     </button>
@@ -191,34 +195,34 @@ export function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
                 </div>
               </div>
               
-              <form onSubmit={handleSubmit} className="relative space-y-5">
+              <form onSubmit={handleSubmit} className="relative space-y-4">
                 {/* Goal Name */}
                 <div className="space-y-2">
-                  <Label className="text-gray-300">Goal Name</Label>
+                  <Label className="text-gray-400 text-xs uppercase tracking-wider">Goal Name</Label>
                   <Input
                     type="text"
                     placeholder="e.g., New Laptop"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="py-4 bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:border-amber-500 focus:ring-amber-500/20 rounded-xl"
+                    className="h-11 bg-white/[0.03] border-white/10 text-white placeholder:text-gray-600 focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/20 rounded-xl"
                     required
                   />
                 </div>
                 
                 {/* Target Amount */}
                 <div className="space-y-2">
-                  <Label className="text-gray-300 flex items-center gap-2">
-                    <IndianRupee className="w-4 h-4" />
+                  <Label className="text-gray-400 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <IndianRupee className="w-3 h-3" />
                     Target Amount
                   </Label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">₹</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-base font-medium">₹</span>
                     <Input
                       type="number"
-                      placeholder="0.00"
+                      placeholder="0"
                       value={targetAmount}
                       onChange={(e) => setTargetAmount(e.target.value)}
-                      className="pl-10 py-6 bg-white/5 border-white/10 text-white text-xl placeholder:text-gray-600 focus:border-amber-500 focus:ring-amber-500/20 rounded-xl"
+                      className="pl-8 h-12 bg-white/[0.03] border-white/10 text-white text-lg font-medium placeholder:text-gray-600 focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/20 rounded-xl"
                       min="0"
                       step="100"
                       required
@@ -228,18 +232,18 @@ export function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
                 
                 {/* Color Selection */}
                 <div className="space-y-2">
-                  <Label className="text-gray-300">Goal Color</Label>
-                  <div className="flex flex-wrap gap-3">
+                  <Label className="text-gray-400 text-xs uppercase tracking-wider">Goal Color</Label>
+                  <div className="flex flex-wrap gap-2">
                     {goalColors.map((color) => (
                       <button
                         key={color.value}
                         type="button"
                         onClick={() => setSelectedColor(color.value)}
                         disabled={isSubmitting}
-                        className={`w-10 h-10 rounded-xl transition-all duration-200 disabled:opacity-50 ${
+                        className={`w-8 h-8 rounded-lg transition-all duration-200 disabled:opacity-50 ${
                           selectedColor === color.value
-                            ? 'ring-2 ring-white ring-offset-2 ring-offset-[#141414] scale-110'
-                            : 'hover:scale-105'
+                            ? 'ring-2 ring-white/80 ring-offset-2 ring-offset-[#0D0D0D] scale-110'
+                            : 'hover:scale-105 opacity-80 hover:opacity-100'
                         }`}
                         style={{ backgroundColor: color.value }}
                         title={color.name}
@@ -249,13 +253,13 @@ export function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
                 </div>
                 
                 {/* Buttons */}
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 pt-4">
                   <Button
                     type="button"
                     onClick={handleClose}
                     variant="outline"
                     disabled={isSubmitting}
-                    className="flex-1 py-5 text-base border-white/20 text-white hover:bg-white/10 rounded-xl disabled:opacity-50"
+                    className="flex-1 h-11 text-sm border-white/10 text-gray-400 hover:text-white hover:bg-white/5 hover:border-white/20 rounded-xl disabled:opacity-50"
                   >
                     Cancel
                   </Button>
@@ -265,14 +269,14 @@ export function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
                     onClick={(e) => {
                       e.stopPropagation();
                     }}
-                    className="flex-1 py-5 text-base shadow-xl rounded-xl transition-all duration-300 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 shadow-amber-500/30 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-11 text-sm rounded-xl transition-all duration-300 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 shadow-lg shadow-teal-500/20 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     {isSubmitting ? (
                       <div className="flex items-center justify-center gap-2">
                         <motion.div
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full"
+                          className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
                         />
                         <span>Creating...</span>
                       </div>

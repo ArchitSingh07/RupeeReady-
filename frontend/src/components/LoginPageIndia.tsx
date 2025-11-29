@@ -83,58 +83,9 @@ export function LoginPageIndia({ onLogin, onRegister }: LoginPageIndiaProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] relative overflow-hidden flex items-center justify-center p-6 noise-texture">
-      {/* Premium Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.25, 0.4, 0.25],
-            x: [0, 30, 0],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -top-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-teal-500/30 via-cyan-500/20 to-transparent rounded-full blur-[100px] aurora-bg"
-        />
-        <motion.div
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.25, 0.4, 0.25],
-            x: [0, -30, 0],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -bottom-1/3 -right-1/4 w-[700px] h-[700px] bg-gradient-to-tl from-purple-500/30 via-violet-500/20 to-transparent rounded-full blur-[120px] aurora-bg"
-        />
-        
-        {/* Floating Particles */}
-        {[...Array(4)].map((_, i) => (
-          <motion.div
-            key={i}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 4 + i,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.5,
-            }}
-            className="absolute w-2 h-2 bg-teal-500/50 rounded-full"
-            style={{
-              left: `${20 + i * 20}%`,
-              top: `${30 + (i % 2) * 40}%`,
-            }}
-          />
-        ))}
-      </div>
+    <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center p-6">
+      {/* Solid Black Background */}
+      <div className="fixed inset-0 bg-black pointer-events-none" />
 
       {/* Main Container */}
       <motion.div

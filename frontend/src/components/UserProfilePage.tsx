@@ -101,12 +101,9 @@ export function UserProfilePage({ onBack, onLogout }: UserProfilePageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] relative overflow-hidden">
-      {/* Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-teal-500/20 via-cyan-500/10 to-transparent rounded-full blur-[100px]" />
-        <div className="absolute -bottom-1/3 -right-1/4 w-[700px] h-[700px] bg-gradient-to-tl from-purple-500/20 via-violet-500/10 to-transparent rounded-full blur-[120px]" />
-      </div>
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Solid Black Background */}
+      <div className="fixed inset-0 bg-black pointer-events-none" />
 
       <div className="relative z-10 max-w-2xl mx-auto px-4 py-8">
         {/* Header */}

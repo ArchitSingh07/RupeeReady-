@@ -90,79 +90,12 @@ export function LandingPageIndia({ onGetStarted, onLogin, onFeatures, onPricing,
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] relative overflow-hidden noise-texture">
-      {/* Premium Animated Background - CRED Style */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Primary Teal Orb */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-            x: [0, 50, 0],
-            y: [0, -30, 0],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-teal-500/30 via-cyan-500/20 to-transparent rounded-full blur-[100px] aurora-bg"
-        />
-        
-        {/* Purple Orb */}
-        <motion.div
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.3, 0.5, 0.3],
-            x: [0, -40, 0],
-            y: [0, 40, 0],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -bottom-1/4 -right-1/4 w-[700px] h-[700px] bg-gradient-to-tl from-purple-500/30 via-violet-500/20 to-transparent rounded-full blur-[120px] aurora-bg"
-        />
-        
-        {/* Orange Accent Orb */}
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            opacity: [0.2, 0.4, 0.2],
-            rotate: [0, 180, 360],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-r from-orange-500/20 via-amber-500/15 to-transparent rounded-full blur-[80px] morphing-blob"
-        />
-
-        {/* Floating Particles */}
-        {[...Array(6)].map((_, i) => (
-          <motion.div
-            key={i}
-            animate={{
-              y: [0, -40, 0],
-              x: [0, Math.sin(i) * 20, 0],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 4 + i,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.5,
-            }}
-            className="absolute w-2 h-2 bg-teal-500/50 rounded-full particle"
-            style={{
-              left: `${15 + i * 15}%`,
-              top: `${20 + (i % 3) * 25}%`,
-            }}
-          />
-        ))}
-      </div>
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Solid Black Background */}
+      <div className="fixed inset-0 bg-black pointer-events-none" />
+      
+      {/* Subtle gradient overlay for depth - no animation */}
+      <div className="fixed inset-0 bg-gradient-to-br from-teal-950/20 via-black to-purple-950/10 pointer-events-none" />
 
       {/* Floating Navigation - Premium Glass Style */}
       <motion.nav

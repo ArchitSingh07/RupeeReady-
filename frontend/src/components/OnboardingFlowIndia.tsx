@@ -155,44 +155,9 @@ export function OnboardingFlowIndia({ onComplete }: OnboardingFlowIndiaProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] relative overflow-hidden noise-texture">
-      {/* Premium Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -top-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-teal-500/25 via-cyan-500/15 to-transparent rounded-full blur-[100px] aurora-bg"
-        />
-        <motion.div
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -bottom-1/3 -right-1/4 w-[700px] h-[700px] bg-gradient-to-tl from-purple-500/25 via-violet-500/15 to-transparent rounded-full blur-[120px] aurora-bg"
-        />
-        
-        {/* Current step glow */}
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 0.3, scale: 1 }}
-          exit={{ opacity: 0 }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-[100px]"
-          style={{ background: `radial-gradient(circle, ${currentStep.glow}, transparent 70%)` }}
-        />
-      </div>
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Solid Black Background */}
+      <div className="fixed inset-0 bg-black pointer-events-none" />
 
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-2xl">
