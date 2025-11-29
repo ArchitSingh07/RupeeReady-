@@ -127,7 +127,7 @@ export function FinancialDataProvider({ children }: { children: ReactNode }) {
     safeToSpend: userProfile?.safe_balance || 0,
     totalBalance: (userProfile?.safe_balance || 0) + (userProfile?.tax_vault || 0),
     taxVault: userProfile?.tax_vault || 0,
-    upcomingBills: calculateUpcomingBills() || (userProfile?.upcoming_bills || 0),
+    upcomingBills: calculateUpcomingBills() || 0,
     totalIncome: userProfile?.total_income || 0,
     totalExpenses: userProfile?.total_expenses || 0,
     financialHealth: calculateHealthStatus(userProfile?.safe_balance || 0, userProfile?.total_income || 0),

@@ -136,7 +136,7 @@ export function DashboardIndia({ onLogout, onProfile, onInvoices }: DashboardInd
 
   // Handle simulate income with notification
   const handleSimulateIncome = (amount: number) => {
-    simulateIncome(amount);
+    simulateIncome(amount, 'Client X');
     addNotification({
       type: 'income',
       title: '⚡ Income Detected!',
@@ -490,7 +490,7 @@ export function DashboardIndia({ onLogout, onProfile, onInvoices }: DashboardInd
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => {
-            simulateIncome(50000);
+            simulateIncome(50000, 'Salary');
             addNotification({
               type: 'income',
               title: 'Income Detected!',
