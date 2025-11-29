@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LandingPageIndia } from './components/LandingPageIndia';
 import { LoginPageIndia } from './components/LoginPageIndia';
 import { RegisterPageIndia } from './components/RegisterPageIndia';
@@ -8,6 +8,7 @@ import { FeaturesPage } from './components/FeaturesPage';
 import { PricingPage } from './components/PricingPage';
 import { AboutPage } from './components/AboutPage';
 import { HowItWorksPage } from './components/HowItWorksPage';
+import { UserProfilePage } from './components/UserProfilePage';
 import { RupeeCursor } from './components/RupeeCursor';
 import { RupeeSquad } from './components/RupeeSquad';
 import { PersistentHeader } from './components/PersistentHeader';
@@ -15,81 +16,112 @@ import { NotificationsModal } from './components/NotificationsModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ProfileModal } from './components/ProfileModal';
 import { Toaster } from './components/ui/sonner';
+import { toast } from 'sonner';
+import { useAuth } from './contexts/AuthContext';
 
-type AppState = 'landing' | 'login' | 'register' | 'onboarding' | 'dashboard' | 'features' | 'pricing' | 'about' | 'how-it-works';
+type AppState = 'landing' | 'login' | 'register' | 'onboarding' | 'dashboard' | 'profile' | 'features' | 'pricing' | 'about' | 'how-it-works' | 'loading';
 
 export default function App() {
-  const [appState, setAppState] = useState<AppState>('landing');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, userProfile, loading, isInitialized, logout } = useAuth();
+  const [appState, setAppState] = useState<AppState>('loading');
   
   // Modal states for dashboard
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [manualNavigation, setManualNavigation] = useState(false);
 
-  // Landing -> Register
-  const handleGetStarted = () => {
-    setAppState('register');
-  };
+  // Handle auth state changes - only run when initialized and not loading
+  useEffect(() => {
+    // Skip if manual navigation was triggered (e.g., after onboarding)
+    if (manualNavigation) {
+      return;
+    }
+    
+    // Wait for auth to be initialized
+    if (!isInitialized) {
+      setAppState('loading');
+      return;
+    }
 
-  // Navigate to info pages
-  const handleGoToFeatures = () => {
-    setAppState('features');
-  };
+    // Once initialized, handle auth state
+    if (user) {
+      // User is logged in - check if they need onboarding
+      // Wait for userProfile to be loaded
+      if (userProfile !== null) {
+        if (userProfile.onboardingCompleted) {
+          setAppState('dashboard');
+        } else {
+          setAppState('onboarding');
+        }
+      } else {
+        // User exists but profile not loaded yet, show onboarding as default for new users
+        setAppState('onboarding');
+      }
+    } else {
+      // User is not logged in
+      // Only go to landing if we're in a "logged in" state or loading
+      if (appState === 'loading' || appState === 'dashboard' || appState === 'onboarding') {
+        setAppState('landing');
+      }
+      // Reset manual navigation flag when user logs out
+      setManualNavigation(false);
+    }
+  }, [user, userProfile, isInitialized, manualNavigation]);
 
-  const handleGoToPricing = () => {
-    setAppState('pricing');
-  };
+  // Navigation handlers
+  const handleGetStarted = () => setAppState('register');
+  const handleGoToFeatures = () => setAppState('features');
+  const handleGoToPricing = () => setAppState('pricing');
+  const handleGoToAbout = () => setAppState('about');
+  const handleGoToHowItWorks = () => setAppState('how-it-works');
+  const handleGoToLanding = () => setAppState('landing');
+  const handleGoToLogin = () => setAppState('login');
+  const handleGoToRegister = () => setAppState('register');
 
-  const handleGoToAbout = () => {
-    setAppState('about');
-  };
-
-  const handleGoToHowItWorks = () => {
-    setAppState('how-it-works');
-  };
-
-  const handleGoToLanding = () => {
-    setAppState('landing');
-  };
-
-  const handleGoToLogin = () => {
-    setAppState('login');
-  };
-
-  const handleGoToRegister = () => {
-    setAppState('register');
-  };
-
-  // Register -> Login
+  // Auth handlers
   const handleRegisterComplete = () => {
+    toast.success('Account created successfully! Please log in.');
     setAppState('login');
   };
 
-  // Login -> Onboarding (first time) or Dashboard
-  const handleLogin = () => {
-    // For first-time users, show onboarding
-    // In a real app, you'd check if user has completed onboarding
-    setIsAuthenticated(true);
-    setAppState('onboarding');
+  const handleLoginSuccess = (isNewUser: boolean = false) => {
+    if (isNewUser || !userProfile?.onboardingCompleted) {
+      setAppState('onboarding');
+    } else {
+      setAppState('dashboard');
+    }
+    toast.success('Welcome back!');
   };
 
-  // Onboarding -> Dashboard
   const handleOnboardingComplete = () => {
+    setManualNavigation(true);
     setAppState('dashboard');
+    toast.success('Setup complete! Welcome to RupeeReady!');
   };
 
-  // Dashboard -> Landing (logout)
-  const handleLogout = () => {
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    await logout();
     setAppState('landing');
+    toast.success('Logged out successfully');
   };
 
-  // Determine header mode based on authentication state
+  // Determine states
+  const isAuthenticated = !!user;
   const headerMode = isAuthenticated ? 'authenticated' : 'guest';
-  
-  // Show header on all pages except login, register, and onboarding
-  const showHeader = !['login', 'register', 'onboarding'].includes(appState);
+  const showHeader = !['login', 'register', 'onboarding', 'loading', 'profile', 'landing'].includes(appState);
+
+  // Loading screen
+  if (appState === 'loading') {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading RupeeReady...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
@@ -99,13 +131,13 @@ export default function App() {
         }
       `}</style>
       
-      {/* Persistent Header - shown on all main pages */}
+      {/* Persistent Header */}
       {showHeader && (
         <PersistentHeader
           mode={headerMode}
           currentPage={appState}
-          userName={isAuthenticated ? "Rahul" : undefined}
-          notificationCount={isAuthenticated ? 5 : 0}
+          userName={userProfile?.displayName || user?.email?.split('@')[0] || undefined}
+          notificationCount={isAuthenticated ? 3 : 0}
           onNavigate={{
             toLanding: handleGoToLanding,
             toFeatures: handleGoToFeatures,
@@ -118,7 +150,7 @@ export default function App() {
           }}
           onNotificationsClick={() => setShowNotifications(true)}
           onSettingsClick={() => setShowSettings(true)}
-          onProfileClick={() => setShowProfile(true)}
+          onProfileClick={() => setAppState('profile')}
         />
       )}
       
@@ -170,7 +202,7 @@ export default function App() {
 
       {appState === 'login' && (
         <LoginPageIndia
-          onLogin={handleLogin}
+          onLogin={handleLoginSuccess}
           onRegister={handleGoToRegister}
         />
       )}
@@ -180,14 +212,23 @@ export default function App() {
       )}
 
       {appState === 'dashboard' && (
-        <DashboardIndia onLogout={handleLogout} />
+        <DashboardIndia 
+          onLogout={handleLogout} 
+          onProfile={() => setAppState('profile')}
+        />
       )}
 
-      {/* Global RupeeSquad - appears on all pages */}
+      {appState === 'profile' && (
+        <UserProfilePage
+          onBack={() => setAppState('dashboard')}
+          onLogout={handleLogout}
+        />
+      )}
+
+      {/* Global RupeeSquad */}
       <RupeeSquad />
-      
       <RupeeCursor />
-      <Toaster />
+      <Toaster richColors position="top-right" />
       
       {/* Modals */}
       {showNotifications && (

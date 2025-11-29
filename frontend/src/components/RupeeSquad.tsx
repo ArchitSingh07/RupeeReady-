@@ -159,17 +159,17 @@ export function RupeeSquad({ mood: externalMood, message: externalMessage, activ
     return () => clearInterval(interval);
   }, []);
 
-  const getEyeExpression = () => {
+  const getEyeExpression = (): React.CSSProperties => {
     // Blink overrides everything
-    if (reactionBlink) return { scaleY: 0.1, scaleX: 1 };
+    if (reactionBlink) return { transform: 'scaleY(0.1) scaleX(1)' };
     
     switch (mood) {
-      case 'celebrating': return { scaleY: 0.4, scaleX: 1.2 }; // Happy squint
-      case 'concerned': return { scaleY: 1.3, scaleX: 1.1 }; // Wide eyes
-      case 'thinking': return { scaleY: 0.9, scaleX: 0.9 }; // Focused
-      case 'alert': return { scaleY: 1.2, scaleX: 1.1 }; // Alert eyes
-      case 'curious': return { scaleY: 1.1, scaleX: 1 }; // Curious eyes
-      default: return { scaleY: 1, scaleX: 1 };
+      case 'celebrating': return { transform: 'scaleY(0.4) scaleX(1.2)' }; // Happy squint
+      case 'concerned': return { transform: 'scaleY(1.3) scaleX(1.1)' }; // Wide eyes
+      case 'thinking': return { transform: 'scaleY(0.9) scaleX(0.9)' }; // Focused
+      case 'alert': return { transform: 'scaleY(1.2) scaleX(1.1)' }; // Alert eyes
+      case 'curious': return { transform: 'scaleY(1.1) scaleX(1)' }; // Curious eyes
+      default: return { transform: 'scaleY(1) scaleX(1)' };
     }
   };
 

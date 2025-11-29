@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { X, AlertTriangle, Bell, TrendingUp } from 'lucide-react';
+import { X, AlertTriangle, Bell, TrendingUp, Shield, Calendar } from 'lucide-react';
 import { Button } from './ui/button';
+import { useFinancialData } from '../contexts/FinancialDataContext';
 
 interface SimpleInsightsModalProps {
   isOpen: boolean;
@@ -8,39 +9,70 @@ interface SimpleInsightsModalProps {
 }
 
 export function SimpleInsightsModal({ isOpen, onClose }: SimpleInsightsModalProps) {
-  // Top 2-3 most important insights - simple and rule-based
-  const topInsights = [
-    {
-      id: '1',
-      icon: Bell,
-      type: 'bill',
-      title: 'Upcoming Bill Reminder',
-      message: 'Airtel Bill Due in 3 Days (₹499)',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-200',
-    },
-    {
+  const { summary, alerts, transactions } = useFinancialData();
+  
+  // Calculate insights dynamically based on real data
+  const topInsights = [];
+  
+  // Bill reminder insight
+  topInsights.push({
+    id: '1',
+    icon: Bell,
+    type: 'bill',
+    title: 'Upcoming Bill Reminder',
+    message: `Your upcoming bills total ₹${summary.upcomingBills.toLocaleString('en-IN')}. Make sure to keep this amount aside.`,
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
+  });
+  
+  // Spending insight based on actual data
+  if (summary.totalExpenses > 0 && summary.totalIncome > 0) {
+    const spendingRatio = Math.round((summary.totalExpenses / summary.totalIncome) * 100);
+    topInsights.push({
       id: '2',
       icon: TrendingUp,
       type: 'spending',
-      title: 'High Spending Alert',
-      message: 'Your spending on "Food & Dining" is 40% of your income this month (₹18,400 of ₹46,000)',
-      color: 'text-amber-600',
-      bgColor: 'bg-amber-50',
-      borderColor: 'border-amber-200',
-    },
-    {
-      id: '3',
-      icon: AlertTriangle,
-      type: 'warning',
-      title: 'Low Safe-to-Spend',
-      message: 'Your Safe-to-Spend balance is ₹45,280. Consider reducing expenses to maintain buffer.',
-      color: 'text-teal-600',
-      bgColor: 'bg-teal-50',
-      borderColor: 'border-teal-200',
-    },
-  ];
+      title: 'Spending Analysis',
+      message: `You've spent ${spendingRatio}% of your income this month (₹${summary.totalExpenses.toLocaleString('en-IN')} of ₹${summary.totalIncome.toLocaleString('en-IN')})`,
+      color: spendingRatio > 80 ? 'text-red-600' : spendingRatio > 60 ? 'text-amber-600' : 'text-green-600',
+      bgColor: spendingRatio > 80 ? 'bg-red-50' : spendingRatio > 60 ? 'bg-amber-50' : 'bg-green-50',
+      borderColor: spendingRatio > 80 ? 'border-red-200' : spendingRatio > 60 ? 'border-amber-200' : 'border-green-200',
+    });
+  }
+  
+  // Safe-to-spend insight
+  const healthStatus = summary.financialHealth;
+  const safeToSpendMessage = healthStatus === 'good' 
+    ? `Great job! Your Safe-to-Spend is ₹${summary.safeToSpend.toLocaleString('en-IN')}. You're managing your finances well!`
+    : healthStatus === 'stable'
+    ? `Your Safe-to-Spend is ₹${summary.safeToSpend.toLocaleString('en-IN')}. Keep an eye on unnecessary expenses.`
+    : `Attention needed! Your Safe-to-Spend is only ₹${summary.safeToSpend.toLocaleString('en-IN')}. Consider reducing expenses.`;
+  
+  topInsights.push({
+    id: '3',
+    icon: healthStatus === 'good' ? Shield : AlertTriangle,
+    type: 'warning',
+    title: healthStatus === 'good' ? 'Healthy Finances' : 'Safe-to-Spend Alert',
+    message: safeToSpendMessage,
+    color: healthStatus === 'good' ? 'text-green-600' : healthStatus === 'stable' ? 'text-teal-600' : 'text-amber-600',
+    bgColor: healthStatus === 'good' ? 'bg-green-50' : healthStatus === 'stable' ? 'bg-teal-50' : 'bg-amber-50',
+    borderColor: healthStatus === 'good' ? 'border-green-200' : healthStatus === 'stable' ? 'border-teal-200' : 'border-amber-200',
+  });
+  
+  // Tax vault insight
+  if (summary.taxVault > 0) {
+    topInsights.push({
+      id: '4',
+      icon: Calendar,
+      type: 'tax',
+      title: 'Tax Vault Status',
+      message: `You have ₹${summary.taxVault.toLocaleString('en-IN')} saved in your Tax Vault. Keep building this buffer for tax season!`,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-200',
+    });
+  }
 
   return (
     <AnimatePresence>
@@ -58,7 +90,7 @@ export function SimpleInsightsModal({ isOpen, onClose }: SimpleInsightsModalProp
           {/* Modal - Centered and fully visible */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
-              className="bg-white rounded-3xl border-2 border-gray-200 p-6 max-w-lg w-full shadow-2xl"
+              className="bg-white rounded-3xl border-2 border-gray-200 p-6 max-w-lg w-full shadow-2xl max-h-[85vh] overflow-y-auto"
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}

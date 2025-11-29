@@ -78,7 +78,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
           {/* Modal */}
           <div className="fixed inset-0 z-50 flex items-start justify-center pt-20">
             <motion.div
-              className="bg-white rounded-3xl border-2 border-gray-200 p-6 max-w-md w-full mx-4 shadow-2xl max-h-[80vh] overflow-hidden flex flex-col"
+              className="bg-[#141414] rounded-3xl border border-white/10 p-6 max-w-md w-full mx-4 shadow-2xl max-h-[80vh] overflow-hidden flex flex-col glass-effect"
               initial={{ opacity: 0, scale: 0.9, y: -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: -20 }}
@@ -91,15 +91,15 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                     <Bell className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl text-gray-900">Notifications</h3>
-                    <p className="text-xs text-gray-600">
+                    <h3 className="text-xl text-white">Notifications</h3>
+                    <p className="text-xs text-gray-400">
                       {notifications.filter(n => n.unread).length} unread
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -113,10 +113,10 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                     return (
                       <motion.div
                         key={notification.id}
-                        className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                        className={`p-4 rounded-xl border transition-all cursor-pointer ${
                           notification.unread
-                            ? 'bg-teal-50 border-teal-200 hover:bg-teal-100'
-                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                            ? 'bg-teal-500/10 border-teal-500/30 hover:bg-teal-500/20'
+                            : 'bg-white/5 border-white/10 hover:bg-white/10'
                         }`}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -127,12 +127,12 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2 mb-1">
-                              <h4 className="text-sm text-gray-900">{notification.title}</h4>
+                              <h4 className="text-sm text-white">{notification.title}</h4>
                               {notification.unread && (
                                 <div className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0 mt-1" />
                               )}
                             </div>
-                            <p className="text-xs text-gray-700 mb-2">{notification.message}</p>
+                            <p className="text-xs text-gray-400 mb-2">{notification.message}</p>
                             <p className="text-xs text-gray-500">{notification.time}</p>
                           </div>
                         </div>
@@ -143,10 +143,10 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
               </div>
 
               {/* Footer Actions */}
-              <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="mt-6 pt-4 border-t border-white/10">
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full border-white/20 text-white hover:bg-white/10"
                   onClick={() => console.log('Mark all as read')}
                 >
                   Mark All as Read

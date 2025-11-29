@@ -28,12 +28,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     },
   });
 
-  const toggleSetting = (category: string, key: string) => {
+  const toggleSetting = (category: 'notifications' | 'preferences' | 'privacy', key: string) => {
     setSettings((prev) => ({
       ...prev,
       [category]: {
-        ...prev[category as keyof typeof prev],
-        [key]: !prev[category as keyof typeof prev][key as keyof typeof prev[typeof category]],
+        ...prev[category],
+        [key]: !(prev[category] as Record<string, boolean | string>)[key],
       },
     }));
   };
@@ -54,7 +54,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* Modal */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
             <motion.div
-              className="bg-white rounded-3xl border-2 border-gray-200 p-6 max-w-lg w-full shadow-2xl max-h-[85vh] overflow-hidden flex flex-col"
+              className="bg-[#141414] rounded-3xl border border-white/10 p-6 max-w-lg w-full shadow-2xl max-h-[85vh] overflow-hidden flex flex-col glass-effect"
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -63,14 +63,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-gray-700 to-gray-900 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-gray-600 to-gray-800 flex items-center justify-center">
                     <Settings className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-xl text-gray-900">Settings</h3>
+                  <h3 className="text-xl text-white">Settings</h3>
                 </div>
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -82,14 +82,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   {/* Notifications */}
                   <div>
                     <div className="flex items-center gap-2 mb-4">
-                      <Bell className="w-5 h-5 text-gray-700" />
-                      <h4 className="text-sm text-gray-900">Notification Preferences</h4>
+                      <Bell className="w-5 h-5 text-gray-400" />
+                      <h4 className="text-sm text-white">Notification Preferences</h4>
                     </div>
                     <div className="space-y-3 pl-7">
                       <div className="flex items-center justify-between py-2">
                         <div>
-                          <p className="text-sm text-gray-900">Bill Reminders</p>
-                          <p className="text-xs text-gray-600">Get notified before bills are due</p>
+                          <p className="text-sm text-white">Bill Reminders</p>
+                          <p className="text-xs text-gray-500">Get notified before bills are due</p>
                         </div>
                         <Switch
                           checked={settings.notifications.billReminders}
@@ -98,8 +98,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       </div>
                       <div className="flex items-center justify-between py-2">
                         <div>
-                          <p className="text-sm text-gray-900">Goal Milestones</p>
-                          <p className="text-xs text-gray-600">Celebrate your progress</p>
+                          <p className="text-sm text-white">Goal Milestones</p>
+                          <p className="text-xs text-gray-500">Celebrate your progress</p>
                         </div>
                         <Switch
                           checked={settings.notifications.goalMilestones}
@@ -108,8 +108,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       </div>
                       <div className="flex items-center justify-between py-2">
                         <div>
-                          <p className="text-sm text-gray-900">Security Alerts</p>
-                          <p className="text-xs text-gray-600">Important security notifications</p>
+                          <p className="text-sm text-white">Security Alerts</p>
+                          <p className="text-xs text-gray-500">Important security notifications</p>
                         </div>
                         <Switch
                           checked={settings.notifications.securityAlerts}
@@ -118,8 +118,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       </div>
                       <div className="flex items-center justify-between py-2">
                         <div>
-                          <p className="text-sm text-gray-900">Spending Insights</p>
-                          <p className="text-xs text-gray-600">AI-generated spending tips</p>
+                          <p className="text-sm text-white">Spending Insights</p>
+                          <p className="text-xs text-gray-500">AI-generated spending tips</p>
                         </div>
                         <Switch
                           checked={settings.notifications.spendingInsights}
@@ -129,25 +129,25 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200" />
+                  <div className="border-t border-white/10" />
 
                   {/* Appearance */}
                   <div>
                     <div className="flex items-center gap-2 mb-4">
-                      <Palette className="w-5 h-5 text-gray-700" />
-                      <h4 className="text-sm text-gray-900">Appearance</h4>
+                      <Palette className="w-5 h-5 text-gray-400" />
+                      <h4 className="text-sm text-white">Appearance</h4>
                     </div>
                     <div className="space-y-3 pl-7">
                       <div className="flex items-center justify-between py-2">
                         <div className="flex items-center gap-2">
                           {settings.preferences.darkMode ? (
-                            <Moon className="w-4 h-4 text-gray-700" />
+                            <Moon className="w-4 h-4 text-gray-400" />
                           ) : (
-                            <Sun className="w-4 h-4 text-gray-700" />
+                            <Sun className="w-4 h-4 text-gray-400" />
                           )}
                           <div>
-                            <p className="text-sm text-gray-900">Dark Mode</p>
-                            <p className="text-xs text-gray-600">Toggle dark theme</p>
+                            <p className="text-sm text-white">Dark Mode</p>
+                            <p className="text-xs text-gray-500">Toggle dark theme</p>
                           </div>
                         </div>
                         <Switch
@@ -158,19 +158,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200" />
+                  <div className="border-t border-white/10" />
 
                   {/* Privacy */}
                   <div>
                     <div className="flex items-center gap-2 mb-4">
-                      <Lock className="w-5 h-5 text-gray-700" />
-                      <h4 className="text-sm text-gray-900">Privacy & Security</h4>
+                      <Lock className="w-5 h-5 text-gray-400" />
+                      <h4 className="text-sm text-white">Privacy & Security</h4>
                     </div>
                     <div className="space-y-3 pl-7">
                       <div className="flex items-center justify-between py-2">
                         <div>
-                          <p className="text-sm text-gray-900">Data Sharing</p>
-                          <p className="text-xs text-gray-600">Share anonymized data for insights</p>
+                          <p className="text-sm text-white">Data Sharing</p>
+                          <p className="text-xs text-gray-500">Share anonymized data for insights</p>
                         </div>
                         <Switch
                           checked={settings.privacy.dataSharing}
@@ -179,8 +179,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       </div>
                       <div className="flex items-center justify-between py-2">
                         <div>
-                          <p className="text-sm text-gray-900">Analytics</p>
-                          <p className="text-xs text-gray-600">Help us improve RupeeReady AI</p>
+                          <p className="text-sm text-white">Analytics</p>
+                          <p className="text-xs text-gray-500">Help us improve RupeeReady AI</p>
                         </div>
                         <Switch
                           checked={settings.privacy.analytics}
@@ -190,16 +190,16 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200" />
+                  <div className="border-t border-white/10" />
 
                   {/* Account Actions */}
                   <div>
                     <div className="space-y-2">
-                      <Button variant="outline" className="w-full justify-start" onClick={() => console.log('Change password')}>
+                      <Button variant="outline" className="w-full justify-start border-white/20 text-white hover:bg-white/10" onClick={() => console.log('Change password')}>
                         <Lock className="w-4 h-4 mr-2" />
                         Change Password
                       </Button>
-                      <Button variant="outline" className="w-full justify-start" onClick={() => console.log('Export data')}>
+                      <Button variant="outline" className="w-full justify-start border-white/20 text-white hover:bg-white/10" onClick={() => console.log('Export data')}>
                         <DollarSign className="w-4 h-4 mr-2" />
                         Export Financial Data
                       </Button>
@@ -209,9 +209,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </div>
 
               {/* Footer */}
-              <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="mt-6 pt-4 border-t border-white/10">
                 <Button
-                  className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 border-0"
+                  className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-black border-0"
                   onClick={onClose}
                 >
                   Save Changes

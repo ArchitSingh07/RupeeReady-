@@ -5,17 +5,23 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { RupeeReadyLogo } from './RupeeReadyLogo';
 import { Label } from './ui/label';
+import { useAuth } from '../contexts/AuthContext';
+import { useFinancialData } from '../contexts/FinancialDataContext';
+import { toast } from 'sonner';
 
 interface OnboardingFlowIndiaProps {
   onComplete: () => void;
 }
 
 export function OnboardingFlowIndia({ onComplete }: OnboardingFlowIndiaProps) {
+  const { updateProfile } = useAuth();
+  const { addNewGoal } = useFinancialData();
   const [step, setStep] = useState(0);
   const [userType, setUserType] = useState('');
   const [monthlyIncome, setMonthlyIncome] = useState('');
   const [firstGoal, setFirstGoal] = useState('');
   const [goalAmount, setGoalAmount] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const steps = [
     {
@@ -100,11 +106,52 @@ export function OnboardingFlowIndia({ onComplete }: OnboardingFlowIndiaProps) {
     }
   };
 
-  const handleSubmitGoal = (e: React.FormEvent) => {
+  const handleSubmitGoal = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (firstGoal && goalAmount) {
-      onComplete();
+    if (!firstGoal || !goalAmount) return;
+    
+    setIsSubmitting(true);
+    
+    // Prepare profile updates including onboarding completion
+    const profileUpdates: Record<string, any> = {
+      onboardingCompleted: true,
+      userType: userType || 'other',
+    };
+    
+    if (monthlyIncome) {
+      profileUpdates.monthlyIncome = parseFloat(monthlyIncome);
     }
+    
+    // Prepare goal data
+    const goalColors = ['#14B8A6', '#F59E0B', '#8B5CF6', '#EF4444', '#3B82F6'];
+    const randomColor = goalColors[Math.floor(Math.random() * goalColors.length)];
+    const goalData = {
+      name: firstGoal,
+      targetAmount: parseFloat(goalAmount),
+      currentAmount: 0,
+      color: randomColor,
+    };
+    
+    // Fire and forget - start the Firestore operations but don't wait for them
+    // This ensures the UI responds immediately
+    Promise.all([
+      updateProfile(profileUpdates, true),
+      addNewGoal(goalData, true),
+    ]).then(([profileResult, goalResult]) => {
+      if (!profileResult.success) {
+        console.error('Failed to save profile:', profileResult.error);
+      }
+      if (!goalResult.success) {
+        console.warn('Failed to create goal:', goalResult.error);
+      }
+    }).catch(error => {
+      console.error('Onboarding save error:', error);
+    });
+    
+    // Immediately navigate to dashboard - don't wait for Firestore
+    toast.success('Welcome to RupeeReady! 🎉');
+    setIsSubmitting(false);
+    onComplete();
   };
 
   return (
@@ -410,10 +457,10 @@ export function OnboardingFlowIndia({ onComplete }: OnboardingFlowIndiaProps) {
                   <Button
                     type="button"
                     onClick={handleSubmitGoal}
-                    disabled={!firstGoal || !goalAmount}
+                    disabled={!firstGoal || !goalAmount || isSubmitting}
                     className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-black shadow-lg shadow-orange-500/30 magnetic-btn disabled:opacity-50"
                   >
-                    Complete Setup
+                    {isSubmitting ? 'Setting up...' : 'Complete Setup'}
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 ) : (
@@ -439,7 +486,10 @@ export function OnboardingFlowIndia({ onComplete }: OnboardingFlowIndiaProps) {
             transition={{ delay: 0.8 }}
           >
             <button
-              onClick={onComplete}
+              onClick={async () => {
+                await updateProfile({ onboardingCompleted: true });
+                onComplete();
+              }}
               className="text-sm text-gray-500 hover:text-gray-400 transition-colors"
             >
               Skip tutorial

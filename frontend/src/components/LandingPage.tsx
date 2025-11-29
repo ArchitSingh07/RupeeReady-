@@ -4,6 +4,7 @@ import { Card } from './ui/card';
 import { Shield, TrendingUp, Target, AlertCircle, Coffee, Zap, ArrowRight, Check } from 'lucide-react';
 import { FinTrio } from './FinTrio';
 import { GalacticBackground } from './GalacticBackground';
+import { AICompanion } from './AICompanion';
 
 interface LandingPageProps {
   onGetStarted: () => void;

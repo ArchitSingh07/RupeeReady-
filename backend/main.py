@@ -41,17 +41,41 @@ app.add_middleware(
 
 # Initialize Firebase Admin SDK
 try:
-    firebase_creds_path = os.getenv("FIREBASE_CREDENTIALS_PATH", "backend/serviceAccountKey.json")
-    
     # Check if Firebase is already initialized
     if not firebase_admin._apps:
-        cred = credentials.Certificate(firebase_creds_path)
-        firebase_admin.initialize_app(cred)
-        print("✅ Firebase initialized successfully")
+        # Option 1: Use GOOGLE_APPLICATION_CREDENTIALS environment variable
+        google_creds = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        
+        # Option 2: Use explicit path from FIREBASE_CREDENTIALS_PATH
+        firebase_creds_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
+        
+        if google_creds and os.path.exists(google_creds):
+            # GOOGLE_APPLICATION_CREDENTIALS is set and file exists
+            cred = credentials.Certificate(google_creds)
+            firebase_admin.initialize_app(cred)
+            print(f"✅ Firebase initialized with GOOGLE_APPLICATION_CREDENTIALS: {google_creds}")
+        elif firebase_creds_path and os.path.exists(firebase_creds_path):
+            # Use explicit path
+            cred = credentials.Certificate(firebase_creds_path)
+            firebase_admin.initialize_app(cred)
+            print(f"✅ Firebase initialized with path: {firebase_creds_path}")
+        elif os.path.exists("serviceAccountKey.json"):
+            # Check current directory
+            cred = credentials.Certificate("serviceAccountKey.json")
+            firebase_admin.initialize_app(cred)
+            print("✅ Firebase initialized with serviceAccountKey.json in current directory")
+        else:
+            # Initialize with default credentials (for deployed environments)
+            firebase_admin.initialize_app()
+            print("✅ Firebase initialized with default credentials")
     
     db = firestore.client()
 except Exception as e:
     print(f"⚠️ Firebase initialization error: {e}")
+    print("ℹ️  To fix this, either:")
+    print("   1. Set GOOGLE_APPLICATION_CREDENTIALS environment variable to the path of your serviceAccountKey.json")
+    print("   2. Set FIREBASE_CREDENTIALS_PATH in your .env file")
+    print("   3. Place serviceAccountKey.json in the backend directory")
     db = None
 
 # Initialize Google Gemini AI

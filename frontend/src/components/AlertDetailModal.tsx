@@ -96,7 +96,7 @@ export function AlertDetailModal({ alert, onClose }: AlertDetailModalProps) {
           {/* Modal */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
             <motion.div
-              className="bg-white rounded-3xl border-2 border-gray-200 p-8 max-w-md w-full shadow-2xl"
+              className="bg-[#141414] rounded-3xl border border-white/10 p-8 max-w-md w-full shadow-2xl glass-effect"
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -109,22 +109,22 @@ export function AlertDetailModal({ alert, onClose }: AlertDetailModalProps) {
                 </div>
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
-              <h3 className="text-2xl mb-6 text-gray-900">{title}</h3>
+              <h3 className="text-2xl mb-6 text-white">{title}</h3>
 
               {/* Details */}
               <div className="space-y-4 mb-8">
                 {Object.entries(content.details).map(([key, value]) => (
                   <div key={key} className="flex justify-between items-start">
-                    <span className="text-sm text-gray-600 capitalize">
+                    <span className="text-sm text-gray-400 capitalize">
                       {key.replace(/([A-Z])/g, ' $1').trim()}:
                     </span>
-                    <span className="text-sm text-gray-900 text-right ml-4">{value}</span>
+                    <span className="text-sm text-white text-right ml-4">{value}</span>
                   </div>
                 ))}
               </div>
@@ -135,7 +135,7 @@ export function AlertDetailModal({ alert, onClose }: AlertDetailModalProps) {
                   <Button
                     key={index}
                     variant={action.variant}
-                    className="w-full"
+                    className={`w-full ${action.variant === 'outline' ? 'border-white/20 text-white hover:bg-white/10' : action.variant === 'ghost' ? 'text-gray-400 hover:text-white hover:bg-white/10' : 'bg-gradient-to-r from-teal-500 to-cyan-500 text-black hover:from-teal-400 hover:to-cyan-400'}`}
                     onClick={() => {
                       console.log(`Action: ${action.label}`);
                       onClose();

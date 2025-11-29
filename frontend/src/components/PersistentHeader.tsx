@@ -43,23 +43,23 @@ export function PersistentHeader({
 
   return (
     <motion.header
-      className="fixed top-6 left-0 right-0 z-40 px-6"
+      className="fixed top-3 sm:top-6 left-0 right-0 z-40 px-3 sm:px-6"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="glass-effect rounded-2xl border border-white/10 px-6 py-4 shadow-2xl">
+        <div className="glass-effect rounded-xl sm:rounded-2xl border border-white/10 px-3 sm:px-6 py-2 sm:py-4 shadow-2xl">
           <div className="flex items-center justify-between">
             {/* Left: Logo and Brand */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <button 
                 onClick={onNavigate.toLanding}
                 className="flex items-center gap-2 group"
               >
                 <RupeeReadyLogo size="sm" showText={false} />
-                <div>
-                  <h1 className="text-lg gradient-text group-hover:opacity-80 transition-opacity">
+                <div className="hidden sm:block">
+                  <h1 className="text-base sm:text-lg gradient-text group-hover:opacity-80 transition-opacity">
                     RupeeReady AI
                   </h1>
                   {mode === 'authenticated' && userName && (
@@ -71,7 +71,7 @@ export function PersistentHeader({
 
             {/* Center: Navigation (Guest mode only) */}
             {mode === 'guest' && (
-              <nav className="hidden md:flex items-center gap-6">
+              <nav className="hidden lg:flex items-center gap-6">
                 {navLinks.map((link, index) => (
                   <button
                     key={index}
@@ -85,19 +85,19 @@ export function PersistentHeader({
             )}
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 sm:gap-3">
               {mode === 'guest' ? (
                 <>
                   <Button 
                     variant="ghost" 
                     onClick={onNavigate.toLogin}
-                    className="text-gray-300 hover:text-white hover:bg-white/10"
+                    className="text-gray-300 hover:text-white hover:bg-white/10 text-sm px-2 sm:px-4"
                   >
                     Login
                   </Button>
                   <Button 
                     onClick={onNavigate.toRegister}
-                    className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-black shadow-lg shadow-teal-500/30"
+                    className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-black shadow-lg shadow-teal-500/30 text-sm px-2 sm:px-4"
                   >
                     Get Started
                   </Button>
@@ -107,12 +107,12 @@ export function PersistentHeader({
                   {/* Notifications */}
                   <button
                     onClick={onNotificationsClick}
-                    className="relative p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white"
+                    className="relative p-1.5 sm:p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white"
                   >
-                    <Bell className="w-5 h-5" />
+                    <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                     {notificationCount > 0 && (
                       <Badge 
-                        className="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-amber-500 text-black border-0 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                        className="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-amber-500 text-black border-0 h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center p-0 text-xs"
                       >
                         {notificationCount}
                       </Badge>
@@ -122,27 +122,27 @@ export function PersistentHeader({
                   {/* Settings */}
                   <button
                     onClick={onSettingsClick}
-                    className="p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white"
+                    className="p-1.5 sm:p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white"
                   >
-                    <Settings className="w-5 h-5" />
+                    <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
 
                   {/* Profile */}
                   <button
                     onClick={onProfileClick}
-                    className="p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white"
+                    className="p-1.5 sm:p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white"
                   >
-                    <User className="w-5 h-5" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
 
                   {/* Logout */}
                   <Button
                     variant="ghost"
                     onClick={onNavigate.toLogout}
-                    className="text-gray-300 hover:text-white hover:bg-white/10"
+                    className="text-gray-300 hover:text-white hover:bg-white/10 text-sm px-2 sm:px-4"
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
+                    <LogOut className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Logout</span>
                   </Button>
                 </>
               )}

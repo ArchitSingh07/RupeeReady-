@@ -9,6 +9,7 @@ import { NotificationsModal } from './NotificationsModal';
 import { SettingsModal } from './SettingsModal';
 import { ProfileModal } from './ProfileModal';
 import { SimpleInsightsModal } from './SimpleInsightsModal';
+import { AddTransactionModal } from './AddTransactionModal';
 import { formatIndianCurrency } from '../utils/indianCurrency';
 import { SafeToSpendWidget } from './SafeToSpendWidget';
 import { TaxVault } from './TaxVault';
@@ -17,12 +18,19 @@ import { GoalsSection } from './GoalsSection';
 import { InsightsAlerts } from './InsightsAlerts';
 import { IncomeSpendingChart } from './IncomeSpendingChart';
 import { ProfitabilityWidget } from './ProfitabilityWidget';
+import { Plus, TrendingUp, TrendingDown } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useFinancialData } from '../contexts/FinancialDataContext';
 
 interface DashboardIndiaProps {
   onLogout: () => void;
+  onProfile?: () => void;
 }
 
-export function DashboardIndia({ onLogout }: DashboardIndiaProps) {
+export function DashboardIndia({ onLogout, onProfile }: DashboardIndiaProps) {
+  const { userProfile } = useAuth();
+  const { transactions, goals, alerts, summary, loading } = useFinancialData();
+  
   const [trioMood, setTrioMood] = useState<'happy' | 'thinking' | 'concerned' | 'celebrating' | 'curious' | 'alert'>('happy');
   const [trioMessage, setTrioMessage] = useState<string>('');
   const [activeCharacter, setActiveCharacter] = useState<'chanakya' | 'kavach' | 'lakshmi' | null>(null);
@@ -35,30 +43,46 @@ export function DashboardIndia({ onLogout }: DashboardIndiaProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showActivityLog, setShowActivityLog] = useState(false);
+  const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
+  const [addTransactionType, setAddTransactionType] = useState<'income' | 'expense'>('expense');
   
   // Agentic animation states
   const [newAlertAnimating, setNewAlertAnimating] = useState<string | null>(null);
   const [taxFlowAnimating, setTaxFlowAnimating] = useState(false);
   const [agentStatus, setAgentStatus] = useState<'normal' | 'insight' | 'urgent'>('insight');
 
-  // Mock data - all in Indian Rupees
-  const mockTransactions = [
-    { id: '1', description: 'Swiggy Income (NEW)', amount: 4500, category: 'income', date: 'Oct 19, 2025', isImpulse: false, isIncome: true },
-    { id: '2', description: 'Chai Shop', amount: 40, category: 'coffee', date: 'Oct 16, 2025', isImpulse: false },
-    { id: '3', description: 'D-Mart Groceries', amount: 1850, category: 'food', date: 'Oct 15, 2025', isImpulse: false },
-    { id: '4', description: 'Ola Ride', amount: 180, category: 'transport', date: 'Oct 15, 2025', isImpulse: false },
-    { id: '5', description: 'Designer Shoes - Myntra', amount: 3500, category: 'shopping', date: 'Oct 14, 2025', isImpulse: true },
-    { id: '6', description: 'Rent Payment', amount: 15000, category: 'housing', date: 'Oct 13, 2025', isImpulse: false },
-    { id: '7', description: 'Swiggy Order', amount: 650, category: 'food', date: 'Oct 13, 2025', isImpulse: false },
+  // Use real data from context, with fallback to mock data if empty
+  const displayTransactions = transactions.length > 0 ? transactions.map(t => ({
+    id: t.id,
+    description: t.description,
+    amount: t.amount,
+    category: t.category,
+    date: t.date || new Date(t.timestamp).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+    isImpulse: t.isImpulse || false,
+    isIncome: t.type === 'income',
+  })) : [
+    { id: '1', description: 'Swiggy Income (NEW)', amount: 4500, category: 'income', date: 'Nov 29, 2025', isImpulse: false, isIncome: true },
+    { id: '2', description: 'Chai Shop', amount: 40, category: 'coffee', date: 'Nov 28, 2025', isImpulse: false, isIncome: false },
+    { id: '3', description: 'D-Mart Groceries', amount: 1850, category: 'food', date: 'Nov 27, 2025', isImpulse: false, isIncome: false },
+    { id: '4', description: 'Ola Ride', amount: 180, category: 'transport', date: 'Nov 26, 2025', isImpulse: false, isIncome: false },
+    { id: '5', description: 'Designer Shoes - Myntra', amount: 3500, category: 'shopping', date: 'Nov 25, 2025', isImpulse: true, isIncome: false },
   ];
 
-  const mockGoals = [
+  const displayGoals = goals.length > 0 ? goals : [
     { id: '1', name: 'Emergency Fund', targetAmount: 100000, currentAmount: 68000, color: '#14B8A6' },
     { id: '2', name: 'Goa Trip', targetAmount: 50000, currentAmount: 32000, color: '#F59E0B' },
     { id: '3', name: 'New Laptop', targetAmount: 80000, currentAmount: 80000, color: '#8B5CF6' },
   ];
 
-  const mockAlerts = [
+  const displayAlerts = alerts.length > 0 ? alerts.map(a => ({
+    id: a.id,
+    type: a.type as 'bill' | 'overspending' | 'security',
+    title: a.title,
+    message: a.message,
+    actionLabel: a.actionLabel,
+    character: a.character || 'chanakya',
+  })) : [
     {
       id: '1',
       type: 'bill' as const,
@@ -71,33 +95,24 @@ export function DashboardIndia({ onLogout }: DashboardIndiaProps) {
       id: '2',
       type: 'overspending' as const,
       title: 'High Spending Category',
-      message: 'Your spending on "Food & Dining" is 40% of your income this month (₹18,400)',
+      message: 'Your spending on "Food & Dining" is 40% of your income this month',
       actionLabel: 'Review',
-      character: 'chanakya',
-    },
-    {
-      id: '3',
-      type: 'security' as const,
-      title: 'Low Safe-to-Spend Alert',
-      message: 'Your Safe-to-Spend is ₹45,280. Consider reducing expenses to maintain buffer.',
-      actionLabel: 'See Breakdown',
       character: 'chanakya',
     },
   ];
 
   const mockChartData = [
-    { month: 'Apr', income: 42000, spending: 38000 },
-    { month: 'May', income: 38500, spending: 35000 },
-    { month: 'Jun', income: 52000, spending: 45000 },
-    { month: 'Jul', income: 47000, spending: 42000 },
-    { month: 'Aug', income: 49000, spending: 41000 },
-    { month: 'Sep', income: 55000, spending: 48000 },
-    { month: 'Oct', income: 46000, spending: 39280.50 },
+    { month: 'Jun', income: 42000, spending: 38000 },
+    { month: 'Jul', income: 38500, spending: 35000 },
+    { month: 'Aug', income: 52000, spending: 45000 },
+    { month: 'Sep', income: 47000, spending: 42000 },
+    { month: 'Oct', income: 49000, spending: 41000 },
+    { month: 'Nov', income: summary.totalIncome || 55000, spending: summary.totalExpenses || 48000 },
   ];
 
-  // Safe to Spend calculation
-  const safeToSpend = 45280.50;
-  const totalBalance = 75000;
+  // Safe to Spend calculation - use real data from context
+  const safeToSpend = summary.safeToSpend || 45280.50;
+  const totalBalance = summary.totalBalance || 75000;
   const taxVault = 22500;
   const upcomingBills = 7219.50;
   const financialHealth: 'stable' | 'good' | 'caution' = 'stable';
@@ -139,7 +154,7 @@ export function DashboardIndia({ onLogout }: DashboardIndiaProps) {
   };
 
   const handleAlertAction = (id: string) => {
-    const alert = mockAlerts.find(a => a.id === id);
+    const alert = displayAlerts.find((a: any) => a.id === id);
     if (alert) {
       setNewAlertAnimating(id);
       setSelectedAlert({ type: alert.type, title: alert.title });
@@ -219,10 +234,10 @@ export function DashboardIndia({ onLogout }: DashboardIndiaProps) {
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 pt-24 relative z-10">
-        <div className="grid lg:grid-cols-12 gap-6">
+      <main className="container mx-auto px-3 sm:px-6 py-6 sm:py-8 pt-20 sm:pt-24 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           {/* Left Column - Main Content */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-4 sm:space-y-6 order-2 lg:order-1">
             {/* Safe to Spend Card - CENTER STAGE */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -283,23 +298,23 @@ export function DashboardIndia({ onLogout }: DashboardIndiaProps) {
                 )}
               </AnimatePresence>
               <TransactionFeed
-                transactions={mockTransactions}
+                transactions={displayTransactions}
                 onTransactionClick={handleTransactionClick}
               />
             </motion.div>
           </div>
 
           {/* Right Column - Sidebar */}
-          <div className="lg:col-span-4 space-y-6">
+          <div className="lg:col-span-4 space-y-4 sm:space-y-6 order-1 lg:order-2">
             {/* Tax Vault */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="glass-effect rounded-3xl border border-white/10 p-6 relative premium-card-hover"
+              className="glass-effect rounded-2xl sm:rounded-3xl border border-white/10 p-4 sm:p-6 relative premium-card-hover"
             >
               {/* Chanakya icon for Tax Management */}
-              <div className="absolute top-6 right-6 w-7 h-7 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center border-2 border-white/10 shadow-lg z-10">
+              <div className="absolute top-4 sm:top-6 right-4 sm:right-6 w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center border-2 border-white/10 shadow-lg z-10">
                 <span className="text-white text-xs">C</span>
               </div>
               <TaxVault
@@ -338,7 +353,7 @@ export function DashboardIndia({ onLogout }: DashboardIndiaProps) {
               
               {/* Enhanced alerts with character attribution */}
               <div className="space-y-3">
-                {mockAlerts.map((alert, index) => {
+                {displayAlerts.map((alert: any, index: number) => {
                   const characterIcons = {
                     kavach: { bg: 'from-teal-500 to-emerald-500', initial: 'K' },
                     chanakya: { bg: 'from-orange-500 to-amber-500', initial: 'C' },
@@ -374,7 +389,10 @@ export function DashboardIndia({ onLogout }: DashboardIndiaProps) {
                           </div>
                           <Button
                             size="sm"
-                            onClick={() => handleAlertAction(alert.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAlertAction(alert.id);
+                            }}
                             className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-black text-xs px-3 py-1 shadow-lg shadow-teal-500/30"
                           >
                             {alert.actionLabel}
@@ -384,6 +402,17 @@ export function DashboardIndia({ onLogout }: DashboardIndiaProps) {
                     </motion.div>
                   );
                 })}
+                
+                {/* View All Insights Button */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowInsights(true)}
+                  className="w-full mt-4 p-3 rounded-xl bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border border-teal-500/30 text-teal-400 text-sm hover:from-teal-500/20 hover:to-cyan-500/20 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <span>💡</span>
+                  View All Insights
+                </motion.button>
               </div>
             </motion.div>
 
@@ -392,14 +421,14 @@ export function DashboardIndia({ onLogout }: DashboardIndiaProps) {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="glass-effect rounded-3xl border border-white/10 p-6 premium-card-hover"
+              className="glass-effect rounded-3xl border border-white/10 p-6 premium-card-hover relative"
             >
               {/* Lakshmi icon for Goals */}
               <div className="absolute top-6 right-6 w-7 h-7 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center border-2 border-white/10 shadow-lg z-10">
                 <span className="text-white text-xs">L</span>
               </div>
               <GoalsSection
-                goals={mockGoals}
+                goals={displayGoals}
                 onGoalClick={handleGoalClick}
               />
             </motion.div>
@@ -407,34 +436,93 @@ export function DashboardIndia({ onLogout }: DashboardIndiaProps) {
         </div>
       </main>
 
+      {/* Floating Action Button - Add Transaction */}
+      <div className="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 z-40 flex flex-col gap-2 sm:gap-3">
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            setAddTransactionType('income');
+            setShowAddTransaction(true);
+          }}
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30 flex items-center justify-center text-white hover:shadow-xl transition-shadow"
+          title="Add Income"
+        >
+          <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            setAddTransactionType('expense');
+            setShowAddTransaction(true);
+          }}
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-red-500 to-orange-500 shadow-lg shadow-red-500/30 flex items-center justify-center text-white hover:shadow-xl transition-shadow"
+          title="Add Expense"
+        >
+          <TrendingDown className="w-5 h-5 sm:w-6 sm:h-6" />
+        </motion.button>
+      </div>
+
       {/* Modals */}
       {selectedAlert && (
         <AlertDetailModal
-          isOpen={!!selectedAlert}
+          alert={{ type: selectedAlert.type as 'subscription' | 'impulse' | 'burnout', title: selectedAlert.title }}
           onClose={() => setSelectedAlert(null)}
-          alertType={selectedAlert.type}
-          alertTitle={selectedAlert.title}
         />
       )}
 
       {selectedGoal && (
         <GoalDetailModal
-          isOpen={!!selectedGoal}
-          onClose={() => setSelectedGoal(null)}
           goal={selectedGoal}
-          onComplete={handleGoalComplete}
+          onClose={() => {
+            setSelectedGoal(null);
+            handleGoalComplete();
+          }}
         />
       )}
 
       {showCelebration && (
         <CelebrationAnimation
-          onComplete={() => {
+          isVisible={showCelebration}
+          onClose={() => {
             setShowCelebration(false);
             setTrioMood('happy');
             setActiveCharacter(null);
           }}
         />
       )}
+
+      {/* Add Transaction Modal */}
+      <AddTransactionModal
+        isOpen={showAddTransaction}
+        onClose={() => setShowAddTransaction(false)}
+        defaultType={addTransactionType}
+      />
+
+      {/* Insights Modal */}
+      <SimpleInsightsModal
+        isOpen={showInsights}
+        onClose={() => setShowInsights(false)}
+      />
+
+      {/* Notifications Modal */}
+      <NotificationsModal
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
+
+      {/* Profile Modal */}
+      <ProfileModal
+        isOpen={showProfile}
+        onClose={() => setShowProfile(false)}
+      />
     </div>
   );
 }

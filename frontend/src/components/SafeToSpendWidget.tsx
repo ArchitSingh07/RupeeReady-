@@ -78,9 +78,9 @@ export function SafeToSpendWidget({
           }}
         />
 
-        <div className="relative p-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
+        <div className="relative p-4 sm:p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+            <div className="flex items-center gap-2 sm:gap-3">
               <motion.div
                 animate={{
                   rotate: [0, 10, -10, 0],
@@ -91,22 +91,22 @@ export function SafeToSpendWidget({
                   repeat: Infinity,
                   repeatDelay: 3,
                 }}
-                className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${styles.gradient} flex items-center justify-center shadow-lg`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br ${styles.gradient} flex items-center justify-center shadow-lg`}
               >
-                <ShieldCheck className="w-7 h-7 text-white" />
+                <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
               </motion.div>
               <div>
-                <h2 className="text-2xl text-white">Safe to Spend</h2>
-                <p className="text-sm text-gray-400 mt-0.5">Your true available balance</p>
+                <h2 className="text-lg sm:text-xl md:text-2xl text-white">Safe to Spend</h2>
+                <p className="text-xs sm:text-sm text-gray-400 mt-0.5">Your true available balance</p>
               </div>
             </div>
             <motion.button
               onClick={() => setShowBreakdown(!showBreakdown)}
-              className={`flex items-center gap-1 ${styles.textColor} hover:underline px-4 py-2 rounded-xl hover:bg-white/5 transition-all duration-300`}
+              className={`flex items-center gap-1 ${styles.textColor} hover:underline px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl hover:bg-white/5 transition-all duration-300`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="text-sm">Breakdown</span>
+              <span className="text-xs sm:text-sm">Breakdown</span>
               <motion.div
                 animate={{ rotate: showBreakdown ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
@@ -118,21 +118,21 @@ export function SafeToSpendWidget({
 
           {/* Main Amount */}
           <motion.div
-            className="mb-8"
+            className="mb-6 sm:mb-8"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="flex items-baseline gap-2">
-              <IndianRupee className={`w-10 h-10 ${styles.textColor}`} />
-              <div className="gradient-text text-6xl">{formatIndianCurrency(safeAmount)}</div>
+            <div className="flex items-baseline gap-1 sm:gap-2">
+              <IndianRupee className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 ${styles.textColor}`} />
+              <div className="gradient-text text-3xl sm:text-4xl md:text-5xl lg:text-6xl">{formatIndianCurrency(safeAmount)}</div>
             </div>
             <motion.div
-              className={`mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${styles.bgOverlay} border border-white/10`}
+              className={`mt-2 sm:mt-3 inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r ${styles.bgOverlay} border border-white/10`}
               whileHover={{ scale: 1.05 }}
             >
-              <TrendingUp className={`w-4 h-4 ${styles.textColor}`} />
-              <span className="text-sm text-gray-300">
+              <TrendingUp className={`w-3 h-3 sm:w-4 sm:h-4 ${styles.textColor}`} />
+              <span className="text-xs sm:text-sm text-gray-300">
                 {financialHealth === 'good' ? 'Healthy Balance' : financialHealth === 'caution' ? 'Monitor Spending' : 'Stable Position'}
               </span>
             </motion.div>
